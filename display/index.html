@@ -3,46 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FarmaDisplay - Turni Farmacie</title>
+    <title>FarmaDisplay</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0ea5e9">
+    <meta name="theme-color" content="#667eea">
 </head>
 <body>
-    <div id="app">
-        <header class="header">
-            <h1>Turni Farmacie</h1>
-            <div id="clock" class="clock"></div>
-        </header>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <img id="pharmacy-logo" src="placeholder-logo.png" alt="Logo" class="logo">
+            <h1 id="pharmacy-name" class="pharmacy-name">Caricamento...</h1>
+        </div>
+        <div class="clock-container">
+            <div id="clock" class="clock">--:--</div>
+            <div id="date" class="date">-- --- ----</div>
+        </div>
+    </header>
 
-        <main class="main">
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Caricamento turni...</p>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Current Shifts Section -->
+        <section class="shifts-section">
+            <h2 class="section-title">Turni Correnti</h2>
+            <div id="shifts-list" class="shifts-list">
+                <div class="loading">Caricamento turni...</div>
             </div>
+        </section>
 
-            <div id="error" class="error hidden">
-                <p id="error-message"></p>
+        <!-- Nearby Pharmacies Map -->
+        <section class="map-section">
+            <h2 class="section-title">Farmacie Vicine</h2>
+            <div id="nearby-pharmacies" class="pharmacies-list">
+                <div class="loading">Caricamento...</div>
             </div>
+        </section>
+    </main>
 
-            <div id="content" class="content hidden">
-                <section class="current-shift">
-                    <h2>In Turno Oggi</h2>
-                    <div id="today-shifts"></div>
-                </section>
+    <!-- Footer with Messages -->
+    <footer class="footer">
+        <div id="messages-carousel" class="messages-carousel">
+            <div class="message">Benvenuto a FarmaDisplay</div>
+        </div>
+        <div id="qr-code" class="qr-code-container"></div>
+    </footer>
 
-                <section class="upcoming-shifts">
-                    <h2>Prossimi Turni</h2>
-                    <div id="upcoming-shifts"></div>
-                </section>
-            </div>
-        </main>
-
-        <footer class="footer">
-            <p>FarmaDisplay &copy; 2025</p>
-        </footer>
+    <!-- Offline Badge -->
+    <div id="offline-badge" class="offline-badge hidden">
+        ⚠️ Modalità Offline
     </div>
 
+    <!-- Scripts -->
     <script src="app.js"></script>
 </body>
 </html>

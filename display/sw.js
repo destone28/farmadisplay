@@ -2,66 +2,56 @@
 // Provides offline functionality and caching
 
 const CACHE_NAME = 'farmadisplay-v1';
-const CACHE_URLS = [
+const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/style.css',
     '/app.js',
+    '/placeholder-logo.png',
+    '/manifest.json'
 ];
 
-// Install event - cache resources
-self.addEventListener('install', event => {
+// Install
+self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(CACHE_URLS))
-            .then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(ASSETS_TO_CACHE);
+        })
     );
+    self.skipWaiting();
 });
 
-// Activate event - clean old caches
-self.addEventListener('activate', event => {
+// Activate
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys()
-            .then(cacheNames => {
-                return Promise.all(
-                    cacheNames
-                        .filter(name => name !== CACHE_NAME)
-                        .map(name => caches.delete(name))
-                );
-            })
-            .then(() => self.clients.claim())
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames
+                    .filter((name) => name !== CACHE_NAME)
+                    .map((name) => caches.delete(name))
+            );
+        })
     );
+    self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
-self.addEventListener('fetch', event => {
+// Fetch (Network First, Cache Fallback)
+self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-
-                return fetch(event.request)
-                    .then(response => {
-                        // Don't cache API calls
-                        if (event.request.url.includes('/api/')) {
-                            return response;
-                        }
-
-                        // Clone and cache other requests
-                        const responseClone = response.clone();
-                        caches.open(CACHE_NAME)
-                            .then(cache => cache.put(event.request, responseClone));
-
-                        return response;
+        fetch(event.request)
+            .then((response) => {
+                // Clone and cache successful responses
+                if (response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseClone);
                     });
+                }
+                return response;
             })
             .catch(() => {
-                // Offline fallback
-                if (event.request.destination === 'document') {
-                    return caches.match('/index.html');
-                }
+                // If network fails, try cache
+                return caches.match(event.request);
             })
     );
 });

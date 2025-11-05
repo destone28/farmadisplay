@@ -1,150 +1,243 @@
 // FarmaDisplay - Display Page Application
 // Ultra-lightweight vanilla JS (<10KB)
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:8000/api/v1'
-    : '/api/v1';
+// Configuration
+const API_URL = 'https://api.farmadisplay.com/api/v1';
+const PHARMACY_ID = new URLSearchParams(window.location.search).get('id') || 'PHARMACY_ID_HERE';
+const REFRESH_INTERVAL = 60000; // 60 seconds
+const HEARTBEAT_INTERVAL = 300000; // 5 minutes
 
-const REFRESH_INTERVAL = 60000; // 1 minute
-let refreshTimer = null;
+// State
+let displayData = null;
+let isOnline = navigator.onLine;
 
-// Initialize app
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    initClock();
-    loadShifts();
-    startAutoRefresh();
-    registerServiceWorker();
+    initializeClock();
+    initializeServiceWorker();
+    loadDisplayData();
+    setupHeartbeat();
+    setupNetworkListeners();
+
+    // Auto-refresh
+    setInterval(loadDisplayData, REFRESH_INTERVAL);
 });
 
-// Clock functionality
-function initClock() {
-    const clockElement = document.getElementById('clock');
-
+// Clock Update
+function initializeClock() {
     function updateClock() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString('it-IT', {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        const dateString = now.toLocaleDateString('it-IT', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        clockElement.textContent = `${dateString} - ${timeString}`;
+
+        // Time
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('clock').textContent = `${hours}:${minutes}`;
+
+        // Date
+        const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+        const months = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+        const dayName = days[now.getDay()];
+        const day = now.getDate();
+        const month = months[now.getMonth()];
+        const year = now.getFullYear();
+
+        document.getElementById('date').textContent = `${dayName}, ${day} ${month} ${year}`;
     }
 
     updateClock();
     setInterval(updateClock, 1000);
 }
 
-// Load shifts from API
-async function loadShifts() {
-    showLoading();
-
+// Load Display Data
+async function loadDisplayData() {
     try {
-        const response = await fetch(`${API_BASE_URL}/shifts/active`);
+        const response = await fetch(`${API_URL}/display/${PHARMACY_ID}`);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('Failed to fetch display data');
         }
 
-        const data = await response.json();
-        renderShifts(data);
-        showContent();
+        displayData = await response.json();
+
+        // Save to cache for offline use
+        await saveToCache(displayData);
+
+        // Render data
+        renderPharmacyInfo(displayData.pharmacy);
+        renderShifts(displayData.current_shifts);
+        renderNearbyPharmacies(displayData.nearby_pharmacies);
+
+        setOnlineStatus(true);
+
     } catch (error) {
-        console.error('Error loading shifts:', error);
-        showError('Impossibile caricare i turni. Riprovo automaticamente...');
+        console.error('Error loading display data:', error);
+
+        // Try to load from cache
+        const cachedData = await loadFromCache();
+        if (cachedData) {
+            displayData = cachedData;
+            renderPharmacyInfo(cachedData.pharmacy);
+            renderShifts(cachedData.current_shifts);
+            renderNearbyPharmacies(cachedData.nearby_pharmacies);
+        }
+
+        setOnlineStatus(false);
     }
 }
 
-// Render shifts
-function renderShifts(data) {
-    const todayContainer = document.getElementById('today-shifts');
-    const upcomingContainer = document.getElementById('upcoming-shifts');
+// Render Functions
+function renderPharmacyInfo(pharmacy) {
+    if (!pharmacy) return;
 
-    // Clear existing content
-    todayContainer.innerHTML = '';
-    upcomingContainer.innerHTML = '';
+    document.getElementById('pharmacy-name').textContent = pharmacy.name;
 
-    // Render today's shifts
-    if (data.today && data.today.length > 0) {
-        todayContainer.innerHTML = data.today.map(shift => createShiftCard(shift, true)).join('');
-    } else {
-        todayContainer.innerHTML = '<p>Nessun turno oggi</p>';
-    }
-
-    // Render upcoming shifts
-    if (data.upcoming && data.upcoming.length > 0) {
-        upcomingContainer.innerHTML = data.upcoming.map(shift => createShiftCard(shift, false)).join('');
-    } else {
-        upcomingContainer.innerHTML = '<p>Nessun turno programmato</p>';
+    if (pharmacy.logo_url) {
+        document.getElementById('pharmacy-logo').src = pharmacy.logo_url;
     }
 }
 
-// Create shift card HTML
-function createShiftCard(shift, isToday) {
-    const className = isToday ? 'shift-card today' : 'shift-card';
-    return `
-        <div class="${className}">
-            <h3>${shift.pharmacy_name}</h3>
-            <p class="address">${shift.address}</p>
-            <p class="date">${formatDate(shift.date)}</p>
-            ${shift.phone ? `<p class="phone">📞 ${shift.phone}</p>` : ''}
+function renderShifts(shifts) {
+    const container = document.getElementById('shifts-list');
+
+    if (!shifts || shifts.length === 0) {
+        container.innerHTML = '<div class="loading">Nessun turno disponibile</div>';
+        return;
+    }
+
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    container.innerHTML = shifts.map(shift => {
+        const isCurrent = shift.start_time <= currentTime && shift.end_time >= currentTime;
+
+        return `
+            <div class="shift-card ${isCurrent ? 'shift-current' : ''}">
+                <div class="shift-time">${shift.start_time} - ${shift.end_time}</div>
+                <div class="shift-date">${formatDate(shift.date)}</div>
+                ${shift.notes ? `<div class="shift-notes">${shift.notes}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function renderNearbyPharmacies(pharmacies) {
+    const container = document.getElementById('nearby-pharmacies');
+
+    if (!pharmacies || pharmacies.length === 0) {
+        container.innerHTML = '<div class="loading">Nessuna farmacia nelle vicinanze</div>';
+        return;
+    }
+
+    container.innerHTML = pharmacies.slice(0, 10).map(pharmacy => `
+        <div class="pharmacy-card">
+            <div class="pharmacy-info">
+                <h3>${pharmacy.name}</h3>
+                <p>${pharmacy.address || ''} - ${pharmacy.city || ''}</p>
+            </div>
+            <div class="pharmacy-distance">
+                ${(pharmacy.distance_meters / 1000).toFixed(1)} km
+            </div>
         </div>
-    `;
+    `).join('');
 }
 
-// Format date
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('it-IT', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+// Cache Management (LocalStorage)
+async function saveToCache(data) {
+    try {
+        localStorage.setItem('display_cache', JSON.stringify({
+            data,
+            timestamp: Date.now()
+        }));
+    } catch (error) {
+        console.error('Error saving to cache:', error);
+    }
+}
+
+async function loadFromCache() {
+    try {
+        const cached = localStorage.getItem('display_cache');
+        if (cached) {
+            const { data, timestamp } = JSON.parse(cached);
+            // Cache valid for 24 hours
+            if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+                return data;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading from cache:', error);
+    }
+    return null;
+}
+
+// Service Worker
+async function initializeServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            await navigator.serviceWorker.register('sw.js');
+            console.log('Service Worker registered');
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
+        }
+    }
+}
+
+// Network Status
+function setupNetworkListeners() {
+    window.addEventListener('online', () => {
+        setOnlineStatus(true);
+        loadDisplayData();
+    });
+
+    window.addEventListener('offline', () => {
+        setOnlineStatus(false);
     });
 }
 
-// UI State Management
-function showLoading() {
-    document.getElementById('loading').classList.remove('hidden');
-    document.getElementById('error').classList.add('hidden');
-    document.getElementById('content').classList.add('hidden');
-}
-
-function showContent() {
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('error').classList.add('hidden');
-    document.getElementById('content').classList.remove('hidden');
-}
-
-function showError(message) {
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('error').classList.remove('hidden');
-    document.getElementById('error-message').textContent = message;
-    document.getElementById('content').classList.add('hidden');
-}
-
-// Auto-refresh
-function startAutoRefresh() {
-    refreshTimer = setInterval(loadShifts, REFRESH_INTERVAL);
-}
-
-// Service Worker Registration
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('Service Worker registered:', reg))
-            .catch(err => console.error('Service Worker registration failed:', err));
+function setOnlineStatus(online) {
+    isOnline = online;
+    const badge = document.getElementById('offline-badge');
+    if (online) {
+        badge.classList.add('hidden');
+    } else {
+        badge.classList.remove('hidden');
     }
 }
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (refreshTimer) {
-        clearInterval(refreshTimer);
+// Device Heartbeat
+async function setupHeartbeat() {
+    async function sendHeartbeat() {
+        if (!isOnline) return;
+
+        try {
+            const deviceId = localStorage.getItem('device_id');
+            if (!deviceId) return;
+
+            await fetch(`${API_URL}/devices/${deviceId}/heartbeat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    serial_number: deviceId,
+                    status: 'active',
+                    firmware_version: '1.0.0'
+                })
+            });
+        } catch (error) {
+            console.error('Heartbeat failed:', error);
+        }
     }
-});
+
+    // Send immediate heartbeat
+    sendHeartbeat();
+
+    // Setup interval
+    setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+}
+
+// Utility Functions
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
