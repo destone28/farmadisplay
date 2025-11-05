@@ -14,10 +14,108 @@ settings = get_settings()
 
 app = FastAPI(
     title="FarmaDisplay API",
-    description="API per la gestione turni farmacie e bacheche elettroniche",
+    description="""
+    API completa per gestione turni farmacie con display elettronici.
+
+    ## 🎯 Features
+
+    * 🔐 **Autenticazione JWT** - Sistema sicuro con role-based access control
+    * 💊 **Gestione Farmacie** - CRUD completo con geolocalizzazione PostGIS
+    * 📅 **Gestione Turni** - Supporto turni ricorrenti con RRULE (RFC 5545)
+    * 📱 **Gestione Dispositivi** - Attivazione e monitoraggio Raspberry Pi
+    * 🗺️ **Display Pubblico** - API ottimizzata con farmacie nelle vicinanze (5km radius)
+
+    ## 🔐 Authentication
+
+    Tutti gli endpoint (eccetto `/display` e `/health`) richiedono JWT token:
+
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+
+    Ottieni il token tramite:
+    1. Registrazione: `POST /api/v1/auth/register`
+    2. Login: `POST /api/v1/auth/login`
+
+    ## 👥 Roles
+
+    - **USER**: Gestisce le proprie farmacie, turni e dispositivi
+    - **ADMIN**: Accesso completo a tutte le risorse, può registrare nuovi dispositivi
+
+    ## 📊 Pagination
+
+    Gli endpoint di listing supportano pagination:
+
+    ```
+    GET /api/v1/pharmacies?skip=0&limit=20
+    ```
+
+    Response format:
+    ```json
+    {
+        "items": [...],
+        "total": 100,
+        "skip": 0,
+        "limit": 20,
+        "has_more": true
+    }
+    ```
+
+    ## 🌍 Geolocation
+
+    Le farmacie supportano geolocalizzazione PostGIS:
+
+    ```json
+    {
+        "name": "Farmacia Test",
+        "location": {
+            "longitude": 9.1900,
+            "latitude": 45.4642
+        }
+    }
+    ```
+
+    ## 🔄 Recurring Shifts
+
+    I turni ricorrenti usano RRULE (RFC 5545):
+
+    ```json
+    {
+        "is_recurring": true,
+        "recurrence_rule": "FREQ=WEEKLY;BYDAY=MO,WE,FR"
+    }
+    ```
+
+    Esempi RRULE:
+    - Giornaliero: `FREQ=DAILY`
+    - Settimanale (Lun/Mer/Ven): `FREQ=WEEKLY;BYDAY=MO,WE,FR`
+    - Mensile (primo lunedì): `FREQ=MONTHLY;BYDAY=1MO`
+
+    ## 🚀 Quick Start
+
+    1. Registra un utente admin
+    2. Crea una farmacia
+    3. Registra un dispositivo (admin only)
+    4. Attiva il dispositivo sulla farmacia
+    5. Crea turni per la farmacia
+    6. Accedi ai dati tramite display API
+
+    ## 📞 Support
+
+    - Email: admin@farmadisplay.com
+    - Docs: https://docs.farmadisplay.com
+    """,
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
+    contact={
+        "name": "FarmaDisplay Team",
+        "email": "admin@farmadisplay.com",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
 # CORS middleware
