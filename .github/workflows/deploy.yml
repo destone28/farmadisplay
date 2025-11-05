@@ -1,0 +1,55 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[deploy-backend]') || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy Backend to Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /opt/farmadisplay
+          git pull origin main
+          ./deployment/deploy-backend.sh
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[deploy-frontend]') || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy Frontend to Server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /opt/farmadisplay
+          git pull origin main
+          ./deployment/deploy-frontend.sh
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+
+    steps:
+    - name: Notify Deployment Status
+      run: |
+        echo "Deployment completed!"
+        echo "Backend: ${{ needs.deploy-backend.result }}"
+        echo "Frontend: ${{ needs.deploy-frontend.result }}"

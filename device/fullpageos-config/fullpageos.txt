@@ -1,0 +1,42 @@
+# FullPageOS Configuration for FarmaDisplay
+
+# Display URL
+FULLPAGEOS_URL=https://yourdomain.com/display
+
+# Chromium Flags
+FULLPAGEOS_CHROMIUM_FLAGS="--kiosk --noerrdialogs --disable-infobars --disable-session-crashed-bubble --disable-suggestions-service --disable-translate --disable-save-password-bubble --disable-component-update --disable-background-networking --disable-sync --disable-speech-api --no-first-run --fast --fast-start --disable-features=TranslateUI --disk-cache-dir=/dev/null --password-store=basic --disable-pinch --overscroll-history-navigation=0 --incognito"
+
+# Disable screen blanking
+FULLPAGEOS_DISABLE_SCREEN_BLANKING=true
+
+# Auto-start chromium
+FULLPAGEOS_AUTOSTART=true
+
+# Screen rotation (0, 90, 180, 270)
+FULLPAGEOS_ROTATION=0
+
+# Hide cursor after X seconds (0 to disable)
+FULLPAGEOS_HIDE_CURSOR_TIMEOUT=10
+
+# Refresh page every X seconds (0 to disable)
+FULLPAGEOS_REFRESH_INTERVAL=0
+
+# Enable SSH
+FULLPAGEOS_SSH_ENABLED=true
+
+# Network configuration
+# Use dhcpcd for ethernet and wifi
+FULLPAGEOS_NETWORK_MANAGER=dhcpcd
+
+# WiFi Configuration (optional, can be configured via Bluetooth)
+# FULLPAGEOS_WIFI_SSID="YourSSID"
+# FULLPAGEOS_WIFI_PASSWORD="YourPassword"
+
+# Timezone
+FULLPAGEOS_TIMEZONE=Europe/Rome
+
+# Hostname
+FULLPAGEOS_HOSTNAME=farmadisplay
+
+# Enable hardware acceleration
+FULLPAGEOS_GPU_MEM=256
