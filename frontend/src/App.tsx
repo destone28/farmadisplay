@@ -1,25 +1,77 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+
+// Pages
+import LoginPage from '@/pages/LoginPage'
+import DashboardLayout from '@/components/layout/DashboardLayout'
+import PharmaciesPage from '@/pages/PharmaciesPage'
+import ShiftsPage from '@/pages/ShiftsPage'
+import DevicesPage from '@/pages/DevicesPage'
+import DashboardPage from '@/pages/DashboardPage'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+})
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, fetchCurrentUser } = useAuth()
+
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      fetchCurrentUser()
+    }
+  }, [isAuthenticated, isLoading, fetchCurrentUser])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
+          <p className="mt-4 text-muted-foreground">Caricamento...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-primary-600 mb-4">
-          FarmaDisplay Dashboard
-        </h1>
-        <p className="text-gray-600 mb-8">
-          Sistema di gestione turni farmacie
-        </p>
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-2 px-4 rounded"
-        >
-          Count is {count}
-        </button>
-      </div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="pharmacies" element={<PharmaciesPage />} />
+            <Route path="shifts" element={<ShiftsPage />} />
+            <Route path="devices" element={<DevicesPage />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   )
 }
 

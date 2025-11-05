@@ -79,10 +79,15 @@ frontend/
 - **TypeScript** - Type safety
 - **Vite** - Build tool & dev server
 - **TailwindCSS** - Utility-first CSS
+- **shadcn/ui** - Component library (Radix UI)
 - **TanStack Query** - Server state management
 - **Zustand** - Client state management
 - **React Router** - Routing
 - **Axios** - HTTP client
+- **React Hook Form** - Form validation
+- **Zod** - Schema validation
+- **FullCalendar** - Calendar and scheduling
+- **Leaflet** - Interactive maps
 
 ## 🔧 Development
 
@@ -130,16 +135,28 @@ Key variables:
 - vite
 
 ### UI
-- tailwindcss
+- tailwindcss + tailwindcss-animate
+- @radix-ui/* (Dialog, Label, Select, Slot, Toast)
 - lucide-react (icons)
+- class-variance-authority
+- tailwind-merge
 
 ### Data Management
 - @tanstack/react-query
 - axios
-- zustand
+- zustand (with persist middleware)
 
 ### Routing
 - react-router-dom
+
+### Forms & Validation
+- react-hook-form
+- zod
+- @hookform/resolvers
+
+### Calendar & Maps
+- @fullcalendar/* (react, daygrid, timegrid, interaction)
+- leaflet + react-leaflet
 
 ### Utilities
 - date-fns
