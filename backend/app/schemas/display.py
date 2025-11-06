@@ -1,6 +1,9 @@
 """Display API schemas."""
+from __future__ import annotations
+
 
 from datetime import date, time, datetime
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel
 
@@ -10,10 +13,10 @@ class DisplayPharmacyInfo(BaseModel):
 
     id: UUID
     name: str
-    address: str | None
-    city: str | None
-    phone: str | None
-    logo_url: str | None
+    address: Optional[str]
+    city: Optional[str]
+    phone: Optional[str]
+    logo_url: Optional[str]
 
 
 class DisplayShiftInfo(BaseModel):
@@ -22,7 +25,7 @@ class DisplayShiftInfo(BaseModel):
     date: date
     start_time: time
     end_time: time
-    notes: str | None
+    notes: Optional[str]
 
 
 class NearbyPharmacyInfo(BaseModel):
@@ -30,9 +33,9 @@ class NearbyPharmacyInfo(BaseModel):
 
     id: UUID
     name: str
-    address: str | None
-    city: str | None
-    phone: str | None
+    address: Optional[str]
+    city: Optional[str]
+    phone: Optional[str]
     distance_meters: float
 
 

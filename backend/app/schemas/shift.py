@@ -1,6 +1,8 @@
 """Shift schemas for request/response validation."""
+from __future__ import annotations
 
 from datetime import date, datetime, time
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -12,8 +14,8 @@ class ShiftBase(BaseModel):
     start_time: time
     end_time: time
     is_recurring: bool = False
-    recurrence_rule: str | None = Field(None, max_length=255)
-    notes: str | None = None
+    recurrence_rule: Optional[str] = Field(None, max_length=255)
+    notes: Optional[str] = None
 
 
 class ShiftCreate(ShiftBase):
@@ -25,12 +27,12 @@ class ShiftCreate(ShiftBase):
 class ShiftUpdate(BaseModel):
     """Schema for updating shift information."""
 
-    date: date | None = None
-    start_time: time | None = None
-    end_time: time | None = None
-    is_recurring: bool | None = None
-    recurrence_rule: str | None = Field(None, max_length=255)
-    notes: str | None = None
+    date: Optional[date] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
+    is_recurring: Optional[bool] = None
+    recurrence_rule: Optional[str] = Field(None, max_length=255)
+    notes: Optional[str] = None
 
 
 class ShiftResponse(ShiftBase):
@@ -39,7 +41,7 @@ class ShiftResponse(ShiftBase):
     id: UUID
     pharmacy_id: UUID
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Optional[datetime]
 
     class Config:
         """Pydantic config."""
@@ -50,5 +52,5 @@ class ShiftWithPharmacy(ShiftResponse):
     """Schema for shift response with pharmacy details."""
 
     pharmacy_name: str
-    pharmacy_address: str | None = None
-    pharmacy_phone: str | None = None
+    pharmacy_address: Optional[str] = None
+    pharmacy_phone: Optional[str] = None

@@ -2,7 +2,7 @@
 // Ultra-lightweight vanilla JS (<10KB)
 
 // Configuration
-const API_URL = 'https://api.farmadisplay.com/api/v1';
+const API_URL = 'http://localhost:8000/api/v1';
 const PHARMACY_ID = new URLSearchParams(window.location.search).get('id') || 'PHARMACY_ID_HERE';
 const REFRESH_INTERVAL = 60000; // 60 seconds
 const HEARTBEAT_INTERVAL = 300000; // 5 minutes

@@ -1,6 +1,9 @@
 """Pharmacy schemas for request/response validation."""
+from __future__ import annotations
+
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
@@ -16,32 +19,32 @@ class PharmacyBase(BaseModel):
     """Base pharmacy schema."""
 
     name: str = Field(..., min_length=1, max_length=255)
-    address: str | None = Field(None, max_length=500)
-    city: str | None = Field(None, max_length=100)
-    postal_code: str | None = Field(None, max_length=10)
-    phone: str | None = Field(None, max_length=20)
-    email: EmailStr | None = None
-    logo_url: str | None = Field(None, max_length=500)
+    address: Optional[str] = Field(None, max_length=500)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    phone: Optional[str] = Field(None, max_length=20)
+    email: Optional[EmailStr] = None
+    logo_url: Optional[str] = Field(None, max_length=500)
 
 
 class PharmacyCreate(PharmacyBase):
     """Schema for creating a new pharmacy."""
 
-    location: LocationData | None = None
+    location: Optional[LocationData] = None
 
 
 class PharmacyUpdate(BaseModel):
     """Schema for updating pharmacy information."""
 
-    name: str | None = Field(None, min_length=1, max_length=255)
-    address: str | None = Field(None, max_length=500)
-    city: str | None = Field(None, max_length=100)
-    postal_code: str | None = Field(None, max_length=10)
-    phone: str | None = Field(None, max_length=20)
-    email: EmailStr | None = None
-    location: LocationData | None = None
-    logo_url: str | None = Field(None, max_length=500)
-    is_active: bool | None = None
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    address: Optional[str] = Field(None, max_length=500)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    phone: Optional[str] = Field(None, max_length=20)
+    email: Optional[EmailStr] = None
+    location: Optional[LocationData] = None
+    logo_url: Optional[str] = Field(None, max_length=500)
+    is_active: Optional[bool] = None
 
 
 class PharmacyResponse(PharmacyBase):
@@ -51,7 +54,7 @@ class PharmacyResponse(PharmacyBase):
     user_id: UUID
     is_active: bool
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Optional[datetime]
 
     class Config:
         """Pydantic config."""
@@ -61,4 +64,4 @@ class PharmacyResponse(PharmacyBase):
 class PharmacyWithLocation(PharmacyResponse):
     """Schema for pharmacy response with location data."""
 
-    location: LocationData | None = None
+    location: Optional[LocationData] = None

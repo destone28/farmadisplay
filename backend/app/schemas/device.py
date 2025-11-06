@@ -1,6 +1,9 @@
 """Device schemas for request/response validation."""
+from __future__ import annotations
+
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -11,8 +14,8 @@ class DeviceBase(BaseModel):
     """Base device schema."""
 
     serial_number: str = Field(..., min_length=1, max_length=100)
-    mac_address: str | None = Field(None, max_length=17)
-    firmware_version: str | None = Field(None, max_length=20)
+    mac_address: Optional[str] = Field(None, max_length=17)
+    firmware_version: Optional[str] = Field(None, max_length=20)
 
 
 class DeviceCreate(DeviceBase):
@@ -39,11 +42,11 @@ class DeviceResponse(DeviceBase):
 
     id: UUID
     activation_code: str
-    pharmacy_id: UUID | None
+    pharmacy_id: Optional[UUID]
     status: DeviceStatus
-    last_seen: datetime | None
+    last_seen: Optional[datetime]
     created_at: datetime
-    activated_at: datetime | None
+    activated_at: Optional[datetime]
 
     class Config:
         """Pydantic config."""
@@ -54,5 +57,5 @@ class DeviceHeartbeat(BaseModel):
     """Schema for device heartbeat."""
 
     serial_number: str
-    firmware_version: str | None = None
+    firmware_version: Optional[str] = None
     status: DeviceStatus = DeviceStatus.ACTIVE

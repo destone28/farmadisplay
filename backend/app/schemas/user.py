@@ -1,6 +1,9 @@
 """User schemas for request/response validation."""
+from __future__ import annotations
+
 
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -11,7 +14,7 @@ class UserBase(BaseModel):
     """Base user schema."""
 
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr | None = None
+    email: Optional[EmailStr] = None
 
 
 class UserCreate(UserBase):
@@ -36,10 +39,10 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     """Schema for updating user information."""
 
-    username: str | None = Field(None, min_length=3, max_length=50)
-    email: EmailStr | None = None
-    is_active: bool | None = None
-    role: UserRole | None = None
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
+    is_active: Optional[bool] = None
+    role: Optional[UserRole] = None
 
 
 class UserResponse(UserBase):
@@ -49,7 +52,7 @@ class UserResponse(UserBase):
     role: UserRole
     is_active: bool
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Optional[datetime]
 
     class Config:
         """Pydantic config."""
@@ -73,5 +76,5 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     """Schema for token payload data."""
 
-    sub: str | None = None
-    role: str | None = None
+    sub: Optional[str] = None
+    role: Optional[str] = None
