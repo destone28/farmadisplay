@@ -5,7 +5,6 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-from geoalchemy2.functions import ST_GeomFromText
 
 from app.database import get_db
 from app.models.user import User, UserRole
@@ -120,24 +119,21 @@ async def create_pharmacy(
     - Name required, max 255 characters
     - Logo URL max 500 characters
     - GPS coordinates: latitude -90/90, longitude -180/180
-    - PostGIS Point for geolocation
     """
-    # Extract location data
-    location_data = None
+    # Extract location coordinates
+    longitude = None
+    latitude = None
     if pharmacy_in.location:
-        # Create PostGIS Point from coordinates
-        # Format: POINT(longitude latitude)
-        location_data = ST_GeomFromText(
-            f"POINT({pharmacy_in.location.longitude} {pharmacy_in.location.latitude})",
-            4326  # WGS84 SRID
-        )
+        longitude = pharmacy_in.location.longitude
+        latitude = pharmacy_in.location.latitude
 
     # Create pharmacy
     pharmacy_data = pharmacy_in.dict(exclude={"location"})
     pharmacy = Pharmacy(
         **pharmacy_data,
         user_id=current_user.id,
-        location=location_data
+        longitude=longitude,
+        latitude=latitude
     )
 
     db.add(pharmacy)
@@ -175,10 +171,8 @@ async def update_pharmacy(
     """
     # Update location if provided
     if pharmacy_in.location is not None:
-        pharmacy.location = ST_GeomFromText(
-            f"POINT({pharmacy_in.location.longitude} {pharmacy_in.location.latitude})",
-            4326
-        )
+        pharmacy.longitude = pharmacy_in.location.longitude
+        pharmacy.latitude = pharmacy_in.location.latitude
 
     # Update other fields
     update_data = pharmacy_in.dict(exclude_unset=True, exclude={"location"})

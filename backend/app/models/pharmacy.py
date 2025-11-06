@@ -1,11 +1,10 @@
 """Pharmacy model."""
 
 import uuid
-from sqlalchemy import Boolean, Column, DateTime, String, ForeignKey
+from sqlalchemy import Boolean, Column, DateTime, String, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-from geoalchemy2 import Geography
 
 from app.database import Base
 
@@ -23,8 +22,9 @@ class Pharmacy(Base):
     postal_code = Column(String(10))
     phone = Column(String(20))
     email = Column(String(255))
-    # PostGIS geography point (longitude, latitude)
-    location = Column(Geography(geometry_type='POINT', srid=4326))
+    # Location coordinates - compatible with SQLite and PostgreSQL
+    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)
     logo_url = Column(String(500))
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

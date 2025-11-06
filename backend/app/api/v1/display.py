@@ -71,47 +71,50 @@ async def get_display_data(
         for shift in current_shifts
     ]
 
-    # Get nearby pharmacies using PostGIS (5km radius)
+    # Get nearby pharmacies using Haversine formula (5km radius)
     nearby_pharmacies = []
 
-    if pharmacy.location:
-        # PostGIS query for nearby pharmacies
-        # ST_Distance returns distance in meters for geography type
-        nearby_query = text("""
-            SELECT
-                id::text as id,
-                name,
-                address,
-                city,
-                phone,
-                ST_Distance(location, :pharmacy_location) as distance
-            FROM pharmacies
-            WHERE id != :pharmacy_id
-              AND is_active = true
-              AND location IS NOT NULL
-              AND ST_DWithin(location, :pharmacy_location, 5000)
-            ORDER BY distance
-            LIMIT 10
-        """)
+    if pharmacy.latitude is not None and pharmacy.longitude is not None:
+        # Get all active pharmacies with coordinates
+        from math import radians, sin, cos, sqrt, atan2
 
-        result = db.execute(
-            nearby_query,
-            {
-                "pharmacy_location": str(pharmacy.location),
-                "pharmacy_id": str(pharmacy_id)
-            }
-        )
+        all_pharmacies = db.query(Pharmacy).filter(
+            Pharmacy.id != pharmacy_id,
+            Pharmacy.is_active == True,
+            Pharmacy.latitude != None,
+            Pharmacy.longitude != None
+        ).all()
 
+        # Calculate distances using Haversine formula
+        pharmacy_distances = []
+        for other in all_pharmacies:
+            # Haversine formula for distance calculation
+            R = 6371000  # Earth radius in meters
+            lat1, lon1 = radians(pharmacy.latitude), radians(pharmacy.longitude)
+            lat2, lon2 = radians(other.latitude), radians(other.longitude)
+
+            dlat = lat2 - lat1
+            dlon = lon2 - lon1
+
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+            c = 2 * atan2(sqrt(a), sqrt(1-a))
+            distance = R * c
+
+            if distance <= 5000:  # Within 5km
+                pharmacy_distances.append((other, distance))
+
+        # Sort by distance and limit to 10
+        pharmacy_distances.sort(key=lambda x: x[1])
         nearby_pharmacies = [
             NearbyPharmacyInfo(
-                id=UUID(row.id),
-                name=row.name,
-                address=row.address,
-                city=row.city,
-                phone=row.phone,
-                distance_meters=float(row.distance)
+                id=p.id,
+                name=p.name,
+                address=p.address,
+                city=p.city,
+                phone=p.phone,
+                distance_meters=float(dist)
             )
-            for row in result
+            for p, dist in pharmacy_distances[:10]
         ]
 
     # Build response
