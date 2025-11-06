@@ -1,6 +1,7 @@
 """FastAPI dependencies."""
 
 from typing import Annotated
+from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
@@ -45,9 +46,15 @@ async def get_current_user(
     try:
         token = credentials.credentials
         payload = decode_token(token)
-        user_id: str | None = payload.get("sub")
+        user_id_str: str | None = payload.get("sub")
 
-        if user_id is None:
+        if user_id_str is None:
+            raise credentials_exception
+
+        # Convert string UUID to UUID object for SQLite compatibility
+        try:
+            user_id = UUID(user_id_str)
+        except (ValueError, TypeError):
             raise credentials_exception
 
     except JWTError:
