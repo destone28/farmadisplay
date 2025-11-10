@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.shift import Shift
 from app.schemas.shift import ShiftCreate, ShiftUpdate, ShiftResponse
-from app.dependencies import CurrentUser
+from app.dependencies import CurrentUser, get_current_user
+from app.models.user import User
 from app.api.v1.pharmacies import require_pharmacy_access
 
 router = APIRouter(prefix="/shifts", tags=["shifts"])
@@ -20,8 +21,8 @@ async def list_shifts(
     pharmacy_id: UUID = Query(..., description="Pharmacy UUID"),
     start_date: date = Query(..., description="Start date (ISO 8601)"),
     end_date: date = Query(..., description="End date (ISO 8601)"),
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     List shifts for a pharmacy within a date range.
@@ -58,8 +59,8 @@ async def list_shifts(
 @router.post("/", response_model=ShiftResponse, status_code=status.HTTP_201_CREATED)
 async def create_shift(
     shift_in: ShiftCreate,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Create a new shift.
@@ -117,8 +118,8 @@ async def create_shift(
 @router.get("/{shift_id}", response_model=ShiftResponse)
 async def get_shift(
     shift_id: UUID,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get shift details.
@@ -145,8 +146,8 @@ async def get_shift(
 async def update_shift(
     shift_id: UUID,
     shift_in: ShiftUpdate,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Update shift information.
@@ -207,8 +208,8 @@ async def update_shift(
 @router.delete("/{shift_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_shift(
     shift_id: UUID,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Delete shift.

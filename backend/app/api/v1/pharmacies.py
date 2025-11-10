@@ -11,7 +11,7 @@ from app.models.user import User, UserRole
 from app.models.pharmacy import Pharmacy
 from app.models.device import Device, DeviceStatus
 from app.schemas.pharmacy import PharmacyCreate, PharmacyUpdate, PharmacyResponse
-from app.dependencies import CurrentUser, get_current_user
+from app.dependencies import CurrentUser, get_current_user, require_admin
 from app.utils.pagination import paginate, PaginatedResponse
 
 router = APIRouter(prefix="/pharmacies", tags=["pharmacies"])
@@ -63,8 +63,8 @@ async def list_pharmacies(
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(20, ge=1, le=100, description="Maximum number of items to return"),
     search: str | None = Query(None, description="Search in name, city, or address"),
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     List pharmacies with pagination and search.
@@ -109,8 +109,8 @@ async def list_pharmacies(
 @router.post("/", response_model=PharmacyResponse, status_code=status.HTTP_201_CREATED)
 async def create_pharmacy(
     pharmacy_in: PharmacyCreate,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Create a new pharmacy.

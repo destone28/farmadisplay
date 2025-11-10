@@ -19,7 +19,7 @@ from app.schemas.device import (
     DeviceResponse,
     DeviceHeartbeat
 )
-from app.dependencies import AdminUser, CurrentUser, get_current_user
+from app.dependencies import AdminUser, CurrentUser, get_current_user, require_admin
 from app.api.v1.pharmacies import require_pharmacy_access
 
 router = APIRouter(prefix="/devices", tags=["devices"])
@@ -28,8 +28,8 @@ router = APIRouter(prefix="/devices", tags=["devices"])
 @router.post("/", response_model=DeviceResponse, status_code=status.HTTP_201_CREATED)
 async def register_device(
     device_in: DeviceCreate,
-    current_user: AdminUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
     Register a new device (ADMIN ONLY).
@@ -74,8 +74,8 @@ async def register_device(
 async def activate_device(
     device_id: UUID,
     activation_in: DeviceActivate,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Activate a device with activation code.
@@ -142,8 +142,8 @@ async def activate_device(
 async def list_devices(
     pharmacy_id: UUID | None = Query(None, description="Filter by pharmacy"),
     status: DeviceStatus | None = Query(None, description="Filter by status"),
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     List devices with filters.
@@ -188,8 +188,8 @@ async def list_devices(
 @router.get("/{device_id}", response_model=DeviceResponse)
 async def get_device(
     device_id: UUID,
-    current_user: CurrentUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get device details.
@@ -265,8 +265,8 @@ async def device_heartbeat(
 async def update_device_status(
     device_id: UUID,
     status_update: DeviceStatusUpdate,
-    current_user: AdminUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
     Update device status (ADMIN ONLY).
@@ -294,8 +294,8 @@ async def update_device_status(
 @router.delete("/{device_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_device(
     device_id: UUID,
-    current_user: AdminUser = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
 ):
     """
     Delete device (ADMIN ONLY).
