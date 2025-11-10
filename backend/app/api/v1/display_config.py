@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import os
 import uuid
+from uuid import UUID
 from pathlib import Path
 
 from app.database import get_db
@@ -76,8 +77,14 @@ def create_display_config(
 ):
     """Create display configuration for pharmacy."""
 
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(config.pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
     # Verify pharmacy exists and user owns it
-    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == config.pharmacy_id).first()
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
     if not pharmacy:
         raise HTTPException(status_code=404, detail="Pharmacy not found")
 
@@ -121,8 +128,14 @@ def update_display_config(
 ):
     """Update display configuration."""
 
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
     # Verify pharmacy exists and user owns it
-    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_id).first()
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
     if not pharmacy:
         raise HTTPException(status_code=404, detail="Pharmacy not found")
 
@@ -154,8 +167,14 @@ def upload_logo(
 ):
     """Upload logo for pharmacy."""
 
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
     # Verify ownership
-    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_id).first()
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
     if not pharmacy:
         raise HTTPException(status_code=404, detail="Pharmacy not found")
 
@@ -189,8 +208,14 @@ def upload_display_image(
 ):
     """Upload main display image/PDF."""
 
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
     # Verify ownership
-    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_id).first()
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
     if not pharmacy:
         raise HTTPException(status_code=404, detail="Pharmacy not found")
 
@@ -224,8 +249,14 @@ def delete_display_config(
 ):
     """Delete display configuration."""
 
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
     # Verify ownership
-    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_id).first()
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
     if not pharmacy:
         raise HTTPException(status_code=404, detail="Pharmacy not found")
 
