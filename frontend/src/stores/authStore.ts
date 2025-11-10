@@ -27,16 +27,8 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials: LoginRequest) => {
         set({ isLoading: true, error: null })
         try {
-          // Login endpoint expects form data
-          const formData = new URLSearchParams()
-          formData.append('username', credentials.username)
-          formData.append('password', credentials.password)
-
-          const { data } = await api.post<AuthResponse>('/auth/login', formData, {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          })
+          // Login endpoint expects JSON
+          const { data } = await api.post<AuthResponse>('/auth/login', credentials)
 
           const token = data.access_token
           localStorage.setItem('auth_token', token)
@@ -54,7 +46,21 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           })
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || 'Login failed'
+          let errorMessage = 'Login failed'
+
+          if (error.response?.data?.detail) {
+            // Handle string detail
+            if (typeof error.response.data.detail === 'string') {
+              errorMessage = error.response.data.detail
+            }
+            // Handle array of validation errors (FastAPI 422)
+            else if (Array.isArray(error.response.data.detail)) {
+              errorMessage = error.response.data.detail
+                .map((err: any) => err.msg || JSON.stringify(err))
+                .join(', ')
+            }
+          }
+
           set({ isLoading: false, error: errorMessage })
           throw error
         }

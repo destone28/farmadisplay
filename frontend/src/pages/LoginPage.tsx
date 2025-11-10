@@ -77,7 +77,7 @@ export default function LoginPage() {
                 {...register('username')}
               />
               {errors.username && (
-                <p className="text-sm text-destructive">{errors.username.message}</p>
+                <p className="text-sm text-destructive">{String(errors.username.message || 'Errore username')}</p>
               )}
             </div>
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
                 {...register('password')}
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-sm text-destructive">{String(errors.password.message || 'Errore password')}</p>
               )}
             </div>
 
@@ -113,7 +113,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <p>
-              Demo: <strong>admin</strong> / <strong>Admin123!</strong>
+              Demo: <strong>admin</strong> / <strong>Admin1234</strong>
             </p>
           </div>
         </CardContent>
