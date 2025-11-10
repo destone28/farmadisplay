@@ -5,7 +5,9 @@ import uuid
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from redis import Redis
+from pathlib import Path
 
 from app.config import get_settings
 from app.api.v1 import api_router
@@ -205,6 +207,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Include API v1 router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+# Mount static files for uploads
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 @app.get("/")

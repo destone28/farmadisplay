@@ -34,6 +34,7 @@ class Pharmacy(Base):
     user = relationship("User", back_populates="pharmacies")
     shifts = relationship("Shift", back_populates="pharmacy", cascade="all, delete-orphan")
     devices = relationship("Device", back_populates="pharmacy")
+    display_config = relationship("DisplayConfig", back_populates="pharmacy", uselist=False, cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         """String representation."""
