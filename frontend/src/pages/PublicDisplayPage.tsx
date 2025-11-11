@@ -240,61 +240,68 @@ export const PublicDisplayPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                {pharmacies.slice(0, 10).map((pharmacy, index) => (
+              <div className="space-y-2">
+                {pharmacies.slice(0, 5).map((pharmacy, index) => (
                   <div
                     key={index}
-                    className="border-2 border-l-4 rounded p-4 flex items-start gap-4"
+                    className="border-2 border-l-4 rounded p-3 flex items-center gap-3"
                     style={{
                       borderLeftColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary,
                       borderColor: colors.border,
                       backgroundColor: config.theme === 'dark' ? '#2a2a2a' : '#f9fafb'
                     }}
                   >
-                    {pharmacy.image_url && (
-                      <img
-                        src={pharmacy.image_url}
-                        alt={pharmacy.name}
-                        className="w-20 h-20 object-cover rounded flex-shrink-0"
-                      />
-                    )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-2xl font-bold" style={{ color: colors.text }}>
-                          {pharmacy.name}
-                        </h3>
-                        <span
-                          className="px-4 py-1.5 rounded-full text-sm font-bold text-white flex-shrink-0"
-                          style={{
-                            backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary
-                          }}
-                        >
-                          {pharmacy.status}
-                        </span>
-                      </div>
-                      <p className="text-base opacity-75 mt-1" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.city} ({pharmacy.province})
-                        {pharmacy.postal_code && <span className="ml-2">• CAP: {pharmacy.postal_code}</span>}
-                        {pharmacy.distance_km && <span className="ml-2">• {pharmacy.distance_km} km</span>}
+                      <h3 className="text-xl font-bold leading-tight" style={{ color: colors.text }}>
+                        {pharmacy.name}
+                      </h3>
+                      <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
+                        📍 {pharmacy.address}
+                        {pharmacy.postal_code && <span className="ml-1.5">• {pharmacy.postal_code}</span>}
+                        {pharmacy.city && <span className="ml-1.5">{pharmacy.city}</span>}
+                        {pharmacy.province && <span className="ml-1"> ({pharmacy.province})</span>}
+                        {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
-                      <div className="flex flex-col gap-1 mt-2">
+                      <div className="flex gap-3 mt-1 text-sm">
                         {pharmacy.opening_hours && (
-                          <p className="text-base" style={{ color: colors.text }}>
+                          <span style={{ color: colors.text }}>
                             🕐 {pharmacy.opening_hours}
-                          </p>
-                        )}
-                        {pharmacy.shift_hours && (
-                          <p className="text-base" style={{ color: colors.text }}>
-                            🔄 Turno: {pharmacy.shift_hours}
-                          </p>
+                          </span>
                         )}
                         {pharmacy.phone && (
-                          <p className="text-base font-semibold" style={{ color: colors.text }}>
+                          <span className="font-semibold" style={{ color: colors.text }}>
                             📞 {pharmacy.phone}
-                          </p>
+                          </span>
                         )}
                       </div>
+                      {pharmacy.shift_hours && (
+                        <p className="text-sm mt-0.5" style={{ color: colors.text }}>
+                          🔄 <span className="font-medium">Turno:</span> {pharmacy.shift_hours}
+                        </p>
+                      )}
                     </div>
+
+                    {/* QR Code for navigation */}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`https://www.google.com/maps/search/?api=1&query=${pharmacy.name} ${pharmacy.address} ${pharmacy.city}`)}`}
+                        alt="QR Code"
+                        className="w-20 h-20"
+                      />
+                      <span className="text-[10px] text-center" style={{ color: colors.text }}>
+                        Scansiona<br/>per navigare
+                      </span>
+                    </div>
+
+                    {/* Status badge */}
+                    <span
+                      className="px-3 py-1 rounded-full text-xs font-bold text-white flex-shrink-0"
+                      style={{
+                        backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary
+                      }}
+                    >
+                      {pharmacy.status}
+                    </span>
                   </div>
                 ))}
               </div>

@@ -456,49 +456,10 @@ export const ConfigurationForm: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Scraped Mode Fields */}
-        {formData.display_mode === DisplayMode.SCRAPED && (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">CAP *</label>
-                <input
-                  type="text"
-                  value={formData.scraping_cap || ''}
-                  onChange={(e) => updateFormData({ scraping_cap: e.target.value })}
-                  placeholder="es. 21049"
-                  maxLength={5}
-                  className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
-                />
-                <p className="text-[10px] text-gray-500 mt-0.5">Inserisci il CAP della tua zona</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Città (opzionale)</label>
-                <input
-                  type="text"
-                  value={formData.scraping_city || ''}
-                  onChange={(e) => updateFormData({ scraping_city: e.target.value })}
-                  placeholder="es. Saronno"
-                  className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
-                />
-                <p className="text-[10px] text-gray-500 mt-0.5">Alternativa al CAP</p>
-              </div>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded p-2">
-              <p className="text-[10px] text-amber-800">
-                ⚠️ Richiesto: almeno CAP o Città. Il CAP è più preciso.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer Section */}
       <div className="space-y-2 border-t pt-2">
-        <h3 className="text-sm font-semibold text-gray-700">Footer</h3>
-
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-2">
             <label className="block text-xs font-medium text-gray-700 mb-1">Messaggio in basso</label>
