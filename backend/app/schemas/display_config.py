@@ -15,14 +15,16 @@ class DisplayMode(str, Enum):
 class DisplayConfigBase(BaseModel):
     """Base schema per display config."""
     pharmacy_name: str = Field(..., min_length=1, max_length=200)
-    pharmacy_hours: Optional[str] = Field(None, max_length=200)
+    pharmacy_hours: Optional[str] = None  # JSON string con orari strutturati
+    subtitle_text: str = Field("Farmacie di turno", max_length=200)
     display_mode: DisplayMode = DisplayMode.IMAGE
     scraping_cap: Optional[str] = Field(None, max_length=10)
     scraping_city: Optional[str] = Field(None, max_length=200)
     scraping_province: Optional[str] = Field(None, max_length=2)
     footer_text: Optional[str] = None
-    background_color: str = Field("#FFFFFF", pattern=r"^#[0-9A-Fa-f]{6}$")
-    text_color: str = Field("#000000", pattern=r"^#[0-9A-Fa-f]{6}$")
+    theme: str = Field("light", pattern=r"^(light|dark)$")
+    primary_color: str = Field("#0066CC", pattern=r"^#[0-9A-Fa-f]{6}$")
+    secondary_color: str = Field("#00A3E0", pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
 class DisplayConfigCreate(DisplayConfigBase):
@@ -34,13 +36,15 @@ class DisplayConfigUpdate(BaseModel):
     """Schema per update (tutti campi opzionali)."""
     pharmacy_name: Optional[str] = None
     pharmacy_hours: Optional[str] = None
+    subtitle_text: Optional[str] = None
     display_mode: Optional[DisplayMode] = None
     scraping_cap: Optional[str] = None
     scraping_city: Optional[str] = None
     scraping_province: Optional[str] = None
     footer_text: Optional[str] = None
-    background_color: Optional[str] = None
-    text_color: Optional[str] = None
+    theme: Optional[str] = None
+    primary_color: Optional[str] = None
+    secondary_color: Optional[str] = None
 
 
 class DisplayConfigResponse(DisplayConfigBase):
