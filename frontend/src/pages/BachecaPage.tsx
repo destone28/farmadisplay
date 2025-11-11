@@ -190,8 +190,20 @@ export const BachecaPage: React.FC = () => {
         </div>
 
         {/* Right: Preview (1/4) */}
-        <div className="w-1/4">
+        <div className="w-1/4 flex flex-col gap-3">
           <DisplayPreview config={previewConfig} isLivePreview={true} />
+
+          {/* Info notification - shown when scraped mode is selected */}
+          {previewConfig?.display_mode === 'scraped' && (
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <p className="text-xs text-blue-800 mb-1.5">
+                📍 Questa modalità mostra automaticamente le farmacie di turno o aperte nella tua zona.
+              </p>
+              <p className="text-[10px] text-blue-600">
+                I dati vengono aggiornati automaticamente da farmaciediturno.org ogni 30 secondi.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

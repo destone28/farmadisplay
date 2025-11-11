@@ -119,7 +119,12 @@ export const PublicDisplayPage: React.FC = () => {
       const today = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][currentTime.getDay()];
       const todayHours = hours[today];
       if (todayHours) {
-        return `Oggi: ${todayHours.open} - ${todayHours.close}`;
+        // Handle both string format (e.g., "08:30-13, 16-20") and object format
+        if (typeof todayHours === 'string') {
+          return `Oggi: ${todayHours}`;
+        } else if (todayHours.open && todayHours.close) {
+          return `Oggi: ${todayHours.open} - ${todayHours.close}`;
+        }
       }
     } catch {
       // Fallback to plain text
@@ -235,55 +240,54 @@ export const PublicDisplayPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
                 {pharmacies.slice(0, 10).map((pharmacy, index) => (
                   <div
                     key={index}
-                    className="border-2 rounded-lg p-4 transition-all hover:shadow-lg"
+                    className="border-l-4 rounded p-4 flex items-start gap-4"
                     style={{
-                      borderColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary,
-                      backgroundColor: colors.bg
+                      borderLeftColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary,
+                      backgroundColor: config.theme === 'dark' ? '#2a2a2a' : '#f9fafb'
                     }}
                   >
-                    <div className="flex items-start gap-3">
-                      {pharmacy.image_url && (
-                        <img
-                          src={pharmacy.image_url}
-                          alt={pharmacy.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>
+                    {pharmacy.image_url && (
+                      <img
+                        src={pharmacy.image_url}
+                        alt={pharmacy.name}
+                        className="w-20 h-20 object-cover rounded flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="text-2xl font-bold" style={{ color: colors.text }}>
                           {pharmacy.name}
                         </h3>
-                        <p className="text-sm opacity-75 mb-2" style={{ color: colors.text }}>
-                          {pharmacy.address}
-                          <br />
-                          {pharmacy.postal_code} {pharmacy.city} ({pharmacy.province})
-                        </p>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span
-                            className="px-3 py-1 rounded-full text-xs font-bold text-white"
-                            style={{
-                              backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary
-                            }}
-                          >
-                            {pharmacy.status}
-                          </span>
-                          {pharmacy.distance_km && (
-                            <span className="text-xs opacity-60" style={{ color: colors.text }}>
-                              📍 {pharmacy.distance_km} km
-                            </span>
-                          )}
-                        </div>
+                        <span
+                          className="px-4 py-1.5 rounded-full text-sm font-bold text-white flex-shrink-0"
+                          style={{
+                            backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary
+                          }}
+                        >
+                          {pharmacy.status}
+                        </span>
+                      </div>
+                      <p className="text-base opacity-75 mt-1" style={{ color: colors.text }}>
+                        📍 {pharmacy.address}, {pharmacy.postal_code} {pharmacy.city} ({pharmacy.province})
+                        {pharmacy.distance_km && <span className="ml-2">• {pharmacy.distance_km} km</span>}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2">
                         {pharmacy.opening_hours && (
-                          <p className="text-sm mb-1" style={{ color: colors.text }}>
+                          <p className="text-base" style={{ color: colors.text }}>
                             🕐 {pharmacy.opening_hours}
                           </p>
                         )}
+                        {pharmacy.shift_hours && (
+                          <p className="text-base" style={{ color: colors.text }}>
+                            🔄 Turno: {pharmacy.shift_hours}
+                          </p>
+                        )}
                         {pharmacy.phone && (
-                          <p className="text-sm font-semibold" style={{ color: colors.text }}>
+                          <p className="text-base font-semibold" style={{ color: colors.text }}>
                             📞 {pharmacy.phone}
                           </p>
                         )}

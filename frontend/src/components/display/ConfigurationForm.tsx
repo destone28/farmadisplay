@@ -361,15 +361,6 @@ export const ConfigurationForm: React.FC<Props> = ({
     setCropModalType(null);
   };
 
-  const updateHours = (day: string, field: 'open' | 'close', value: string) => {
-    const newHours = {
-      ...hours,
-      [day]: { ...hours[day as keyof PharmacyHours], [field]: value }
-    };
-    setHours(newHours);
-    onLiveHoursChange(newHours);
-  };
-
   // Helper to update form data and trigger live preview
   const updateFormData = (updates: Partial<DisplayConfigUpdate>) => {
     const newFormData = { ...formData, ...updates };
@@ -438,29 +429,52 @@ export const ConfigurationForm: React.FC<Props> = ({
           />
         </div>
 
-        {/* Hours - Compact */}
+        {/* Hours - Compact with flexible format support */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Orari Settimanali</label>
+          <label className="block text-xs font-medium text-gray-700 mb-1">
+            Orari Settimanali
+            <span className="ml-2 text-[10px] text-gray-500 font-normal">(es: 08:30-13, 16-20 oppure Chiuso)</span>
+          </label>
           <div className="grid grid-cols-7 gap-1 text-xs">
-            {DAYS.map(day => (
-              <div key={day.key} className="text-center">
-                <div className="font-medium text-gray-600 mb-1">{day.label}</div>
-                <input
-                  type="time"
-                  value={hours[day.key as keyof PharmacyHours]?.open || ''}
-                  onChange={(e) => updateHours(day.key, 'open', e.target.value)}
-                  className="w-full px-0.5 py-0.5 border rounded text-[10px]"
-                  step="900"
-                />
-                <input
-                  type="time"
-                  value={hours[day.key as keyof PharmacyHours]?.close || ''}
-                  onChange={(e) => updateHours(day.key, 'close', e.target.value)}
-                  className="w-full px-0.5 py-0.5 border rounded text-[10px] mt-1"
-                  step="900"
-                />
-              </div>
-            ))}
+            {DAYS.map(day => {
+              const dayHours = hours[day.key as keyof PharmacyHours];
+              // Format stored value as string for display
+              let displayValue = '';
+              if (dayHours) {
+                if (typeof dayHours === 'string') {
+                  displayValue = dayHours;
+                } else if (dayHours.open && dayHours.close) {
+                  displayValue = `${dayHours.open}-${dayHours.close}`;
+                }
+              }
+
+              return (
+                <div key={day.key} className="text-center">
+                  <div className="font-medium text-gray-600 mb-1">{day.label}</div>
+                  <input
+                    type="text"
+                    value={displayValue}
+                    onChange={(e) => {
+                      const value = e.target.value.trim();
+                      const newHours = { ...hours };
+                      if (!value || value.toLowerCase() === 'chiuso') {
+                        delete newHours[day.key as keyof PharmacyHours];
+                      } else {
+                        // Store as string to support flexible formats
+                        (newHours as any)[day.key] = value;
+                      }
+                      setHours(newHours);
+                      onLiveHoursChange(newHours);
+                    }}
+                    placeholder="Chiuso"
+                    className="w-full px-1 py-1 border rounded text-[9px] text-center"
+                  />
+                  <p className="text-[8px] text-gray-400 mt-0.5 leading-tight">
+                    Formato 24h
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -505,15 +519,6 @@ export const ConfigurationForm: React.FC<Props> = ({
         {/* Scraped Mode Fields */}
         {formData.display_mode === DisplayMode.SCRAPED && (
           <div className="space-y-2">
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <p className="text-xs text-blue-800 mb-2">
-                📍 Questa modalità mostra automaticamente le farmacie di turno o aperte nella tua zona.
-              </p>
-              <p className="text-[10px] text-blue-600">
-                I dati vengono aggiornati automaticamente da farmaciediturno.org ogni 30 secondi.
-              </p>
-            </div>
-
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">CAP *</label>

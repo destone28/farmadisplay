@@ -5,13 +5,13 @@ export enum DisplayMode {
 }
 
 export interface PharmacyHours {
-  monday?: { open: string; close: string };
-  tuesday?: { open: string; close: string };
-  wednesday?: { open: string; close: string };
-  thursday?: { open: string; close: string };
-  friday?: { open: string; close: string };
-  saturday?: { open: string; close: string };
-  sunday?: { open: string; close: string };
+  monday?: { open: string; close: string } | string;
+  tuesday?: { open: string; close: string } | string;
+  wednesday?: { open: string; close: string } | string;
+  thursday?: { open: string; close: string } | string;
+  friday?: { open: string; close: string } | string;
+  saturday?: { open: string; close: string } | string;
+  sunday?: { open: string; close: string } | string;
 }
 
 export interface DisplayConfig {

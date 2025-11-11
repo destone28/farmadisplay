@@ -98,7 +98,12 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
       const today = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][currentTime.getDay()];
       const todayHours = hours[today];
       if (todayHours) {
-        return `Oggi: ${todayHours.open} - ${todayHours.close}`;
+        // Handle both string format (e.g., "08:30-13, 16-20") and object format
+        if (typeof todayHours === 'string') {
+          return `Oggi: ${todayHours}`;
+        } else if (todayHours.open && todayHours.close) {
+          return `Oggi: ${todayHours.open} - ${todayHours.close}`;
+        }
       }
     } catch {
       // Fallback to plain text
