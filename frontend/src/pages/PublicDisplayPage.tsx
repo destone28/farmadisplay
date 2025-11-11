@@ -256,41 +256,38 @@ export const PublicDisplayPage: React.FC = () => {
                         {pharmacy.name}
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}
-                        {pharmacy.postal_code && <span className="ml-1.5">• {pharmacy.postal_code}</span>}
-                        {pharmacy.city && <span className="ml-1.5">{pharmacy.city}</span>}
-                        {pharmacy.province && <span className="ml-1"> ({pharmacy.province})</span>}
+                        📍 {pharmacy.address}, {pharmacy.postal_code} {pharmacy.city} ({pharmacy.province})
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
-                      <div className="flex gap-3 mt-1 text-sm">
+                      <div className="flex flex-col gap-0.5 mt-1 text-sm">
                         {pharmacy.opening_hours && (
-                          <span style={{ color: colors.text }}>
-                            🕐 {pharmacy.opening_hours}
-                          </span>
+                          <div style={{ color: colors.text }}>
+                            🕐 Apertura: {pharmacy.opening_hours}
+                          </div>
+                        )}
+                        {pharmacy.shift_hours && (
+                          <div style={{ color: colors.text }}>
+                            🔄 Turno: {pharmacy.shift_hours}
+                          </div>
                         )}
                         {pharmacy.phone && (
-                          <span className="font-semibold" style={{ color: colors.text }}>
+                          <div className="font-semibold" style={{ color: colors.text }}>
                             📞 {pharmacy.phone}
-                          </span>
+                          </div>
                         )}
                       </div>
-                      {pharmacy.shift_hours && (
-                        <p className="text-sm mt-0.5" style={{ color: colors.text }}>
-                          🔄 <span className="font-medium">Turno:</span> {pharmacy.shift_hours}
-                        </p>
-                      )}
                     </div>
 
                     {/* QR Code for navigation */}
-                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[10px] text-center leading-tight" style={{ color: colors.text }}>
+                        Scansiona<br/>per<br/>navigare
+                      </span>
                       <img
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`https://www.google.com/maps/search/?api=1&query=${pharmacy.name} ${pharmacy.address} ${pharmacy.city}`)}`}
                         alt="QR Code"
                         className="w-20 h-20"
                       />
-                      <span className="text-[10px] text-center" style={{ color: colors.text }}>
-                        Scansiona<br/>per navigare
-                      </span>
                     </div>
 
                     {/* Status badge */}

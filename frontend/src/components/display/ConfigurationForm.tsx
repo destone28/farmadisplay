@@ -368,22 +368,8 @@ export const ConfigurationForm: React.FC<Props> = ({
     <form onSubmit={handleSubmit} className="space-y-3 bg-white p-4 rounded-lg shadow h-full overflow-y-auto">
       {/* Header Section */}
       <div className="space-y-2">
-        <div className="grid grid-cols-5 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Logo</label>
-            {config?.logo_path && !logoFile && (
-              <img src={`${import.meta.env.VITE_API_URL}${config.logo_path}`} alt="Logo" className="h-10 mb-1 object-contain border rounded p-1" />
-            )}
-            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileChange(e, 'logo')} className="block w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700" />
-            {logoFile && <p className="text-xs text-green-600 mt-1">Nuovo: {logoFile.name}</p>}
-          </div>
-
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nome Farmacia *</label>
-            <input type="text" required value={formData.pharmacy_name || ''} onChange={(e) => updateFormData({ pharmacy_name: e.target.value })} className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500" />
-          </div>
-
-          <div className="col-span-2">
+        <div className="flex gap-2">
+          <div className="flex-1">
             <label className="block text-xs font-medium text-gray-700 mb-1">Tema</label>
             <div className="flex gap-2">
               <button
