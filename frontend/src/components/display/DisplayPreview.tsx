@@ -76,9 +76,12 @@ export const DisplayPreview: React.FC<Props> = ({ config }) => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-bold text-gray-900">Anteprima Display 17" (1280x1024)</h2>
+    <div className="bg-white p-4 rounded-lg shadow h-full flex flex-col">
+      <div className="mb-3">
+        <h2 className="text-lg font-bold text-gray-900">Anteprima Bacheca Farmacia</h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Questa è l'anteprima di come apparirà la bacheca della farmacia una volta premuto il pulsante "Salva Configurazione"
+        </p>
       </div>
 
       {/* Preview Box - 4:3 ratio vertical (768px width x 1024px height scaled down) */}
@@ -135,10 +138,11 @@ export const DisplayPreview: React.FC<Props> = ({ config }) => {
             {config.display_mode === 'image' && config.image_path ? (
               <div className="w-full h-full flex items-center justify-center">
                 {config.image_path.endsWith('.pdf') ? (
-                  <div className="text-center">
-                    <div className="text-3xl mb-1">📄</div>
-                    <p className="text-xs opacity-70">PDF Display</p>
-                  </div>
+                  <iframe
+                    src={`${import.meta.env.VITE_API_URL}${config.image_path}#page=1`}
+                    className="w-full h-full border-0"
+                    title="PDF Preview"
+                  />
                 ) : (
                   <img
                     src={`${import.meta.env.VITE_API_URL}${config.image_path}`}
@@ -158,8 +162,8 @@ export const DisplayPreview: React.FC<Props> = ({ config }) => {
           {/* Footer */}
           {config.footer_text && (
             <div
-              className="px-3 py-2 text-center border-t-2 text-[10px]"
-              style={{ borderColor: colors.border }}
+              className="px-3 py-2 text-center text-[10px]"
+              style={{ backgroundColor: config.secondary_color, color: '#ffffff' }}
             >
               {config.footer_text}
             </div>
@@ -167,9 +171,6 @@ export const DisplayPreview: React.FC<Props> = ({ config }) => {
         </div>
       </div>
 
-      <p className="mt-2 text-xs text-gray-500 text-center">
-        Anteprima ottimizzata per display 17" 4:3 (1280x1024) • Orientamento verticale
-      </p>
     </div>
   );
 };

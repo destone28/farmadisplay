@@ -175,7 +175,7 @@ export const PublicDisplayPage: React.FC = () => {
           <div className="w-full h-full flex items-center justify-center">
             {config.image_path.endsWith('.pdf') ? (
               <iframe
-                src={`${import.meta.env.VITE_API_URL}${config.image_path}`}
+                src={`${import.meta.env.VITE_API_URL}${config.image_path}#page=1`}
                 className="w-full h-full border-0"
                 title="PDF Display"
               />
@@ -198,8 +198,8 @@ export const PublicDisplayPage: React.FC = () => {
       {/* Footer */}
       {config.footer_text && (
         <div
-          className="px-8 py-5 text-center border-t-4 text-xl"
-          style={{ borderColor: colors.border }}
+          className="px-8 py-5 text-center text-xl"
+          style={{ backgroundColor: config.secondary_color, color: '#ffffff' }}
         >
           {config.footer_text}
         </div>

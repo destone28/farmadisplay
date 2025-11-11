@@ -88,16 +88,34 @@ export const BachecaPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Configurazione Bacheca Display</h1>
+    <div className="h-[calc(100vh-4rem)] overflow-hidden flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-4 border-b bg-white">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Configurazione Bacheca Display</h1>
+
+          {/* Pharmacy Selector (if multiple pharmacies) */}
+          {pharmacies.length > 1 && (
+            <select
+              value={selectedPharmacyId}
+              onChange={(e) => setSelectedPharmacyId(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+            >
+              {pharmacies.map((pharmacy) => (
+                <option key={pharmacy.id} value={pharmacy.id}>
+                  {pharmacy.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
 
         {selectedPharmacyId && (
           <button
             onClick={openPublicDisplay}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition text-sm"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
             Apri Display Pubblico
@@ -105,39 +123,20 @@ export const BachecaPage: React.FC = () => {
         )}
       </div>
 
-      {/* Pharmacy Selector (if multiple pharmacies) */}
-      {pharmacies.length > 1 && (
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Seleziona Farmacia
-          </label>
-          <select
-            value={selectedPharmacyId}
-            onChange={(e) => setSelectedPharmacyId(e.target.value)}
-            className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-          >
-            {pharmacies.map((pharmacy) => (
-              <option key={pharmacy.id} value={pharmacy.id}>
-                {pharmacy.name}
-              </option>
-            ))}
-          </select>
+      {/* Main Content - Two columns without scroll */}
+      <div className="flex-1 grid grid-cols-2 gap-6 p-6 overflow-hidden">
+        {/* Left: Preview */}
+        <div className="flex flex-col">
+          <DisplayPreview config={config} />
         </div>
-      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Configuration Form */}
-        <div>
+        {/* Right: Configuration Form */}
+        <div className="flex flex-col">
           <ConfigurationForm
             pharmacyId={selectedPharmacyId}
             config={config}
             onUpdate={loadConfig}
           />
-        </div>
-
-        {/* Display Preview */}
-        <div className="lg:sticky lg:top-8 lg:h-screen">
-          <DisplayPreview config={config} refreshInterval={10000} />
         </div>
       </div>
     </div>
