@@ -21,6 +21,11 @@ export const BachecaPage: React.FC = () => {
   const [liveLogoPreview, setLiveLogoPreview] = useState<string | null>(null);
   const [liveImagePreview, setLiveImagePreview] = useState<string | null>(null);
 
+  // Get selected pharmacy
+  const selectedPharmacy = useMemo(() => {
+    return pharmacies.find(p => p.id === selectedPharmacyId) || null;
+  }, [pharmacies, selectedPharmacyId]);
+
   // Compute preview config - merges saved config with live changes
   const previewConfig = useMemo<DisplayConfig | null>(() => {
     if (!config) return null;
@@ -37,6 +42,9 @@ export const BachecaPage: React.FC = () => {
       pharmacy_hours: Object.keys(liveHours).length > 0 ? JSON.stringify(liveHours) : config.pharmacy_hours,
       logo_path: liveLogoPreview ?? config.logo_path,
       image_path: liveImagePreview ?? config.image_path,
+      scraping_cap: liveFormData.scraping_cap ?? config.scraping_cap,
+      scraping_city: liveFormData.scraping_city ?? config.scraping_city,
+      scraping_province: liveFormData.scraping_province ?? config.scraping_province,
     };
   }, [config, liveFormData, liveHours, liveFooterBgColor, liveLogoPreview, liveImagePreview]);
 
@@ -167,6 +175,7 @@ export const BachecaPage: React.FC = () => {
         <div className="w-3/4">
           <ConfigurationForm
             pharmacyId={selectedPharmacyId}
+            pharmacy={selectedPharmacy}
             config={config}
             onUpdate={loadConfig}
             liveFormData={liveFormData}

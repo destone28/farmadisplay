@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DisplayConfig } from '../../types/display';
+import { scrapingService, PharmacyShiftInfo } from '../../services/scrapingService';
 
 interface Props {
   config: DisplayConfig | null;
@@ -9,6 +10,8 @@ interface Props {
 
 export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [pharmacies, setPharmacies] = useState<PharmacyShiftInfo[]>([]);
+  const [loadingPharmacies, setLoadingPharmacies] = useState(false);
 
   // Update time every second
   useEffect(() => {
@@ -17,6 +20,34 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch scraped pharmacies if in SCRAPED mode (for live preview)
+  useEffect(() => {
+    if (!config || config.display_mode !== 'scraped' || !isLivePreview) {
+      setPharmacies([]);
+      return;
+    }
+
+    const fetchPharmacies = async () => {
+      if (!config.scraping_cap && !config.scraping_city) return;
+
+      setLoadingPharmacies(true);
+      try {
+        const response = await scrapingService.searchPharmacies(
+          config.scraping_cap || undefined,
+          config.scraping_city || undefined
+        );
+        setPharmacies(response.pharmacies.slice(0, 3)); // Show only first 3 in preview
+      } catch (err) {
+        console.error('Error fetching pharmacies for preview:', err);
+        setPharmacies([]);
+      } finally {
+        setLoadingPharmacies(false);
+      }
+    };
+
+    fetchPharmacies();
+  }, [config, isLivePreview]);
 
   if (!config) {
     return (
@@ -150,6 +181,47 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
                     alt="Display"
                     className="w-full h-full object-fill"
                   />
+                )}
+              </div>
+            ) : config.display_mode === 'scraped' ? (
+              <div className="w-full h-full overflow-y-auto p-1">
+                {loadingPharmacies ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b border-blue-600 mx-auto mb-1"></div>
+                      <p className="text-[8px] text-gray-600">Caricamento...</p>
+                    </div>
+                  </div>
+                ) : pharmacies.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-center opacity-50">
+                    <p className="text-[8px]">Configura CAP o città<br/>per vedere le farmacie</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {pharmacies.map((pharmacy, index) => (
+                      <div
+                        key={index}
+                        className="border rounded p-1 text-[7px]"
+                        style={{ borderColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary }}
+                      >
+                        <div className="font-bold truncate text-[8px]">{pharmacy.name}</div>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span
+                            className="px-1 rounded text-[6px] font-bold text-white"
+                            style={{ backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary }}
+                          >
+                            {pharmacy.status}
+                          </span>
+                          {pharmacy.distance_km && (
+                            <span className="text-[6px] opacity-60">📍 {pharmacy.distance_km}km</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="text-[6px] text-center opacity-60 mt-1">
+                      Mostra {pharmacies.length} di più farmacie
+                    </div>
+                  </div>
                 )}
               </div>
             ) : (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DisplayConfig, DisplayConfigUpdate, DisplayMode, PharmacyHours } from '../../types/display';
+import { Pharmacy } from '../../types';
 import { displayConfigService } from '../../services/displayConfigService';
 import { ImageCropModal } from './ImageCropModal';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -12,6 +13,7 @@ if (typeof window !== 'undefined') {
 
 interface Props {
   pharmacyId: string;
+  pharmacy: Pharmacy | null;
   config: DisplayConfig | null;
   onUpdate: () => void;
   // Live preview props
@@ -83,6 +85,7 @@ const ColorPalette: React.FC<{
 
 export const ConfigurationForm: React.FC<Props> = ({
   pharmacyId,
+  pharmacy,
   config,
   onUpdate,
   onLiveFormDataChange,
@@ -98,7 +101,9 @@ export const ConfigurationForm: React.FC<Props> = ({
     display_mode: config?.display_mode || DisplayMode.IMAGE,
     footer_text: config?.footer_text || '',
     theme: config?.theme || 'light',
-    primary_color: config?.primary_color || '#0066CC'
+    primary_color: config?.primary_color || '#0066CC',
+    scraping_cap: config?.scraping_cap || pharmacy?.postal_code || '',
+    scraping_city: config?.scraping_city || pharmacy?.city || ''
   });
 
   const [hours, setHours] = useState<PharmacyHours>({});
@@ -131,7 +136,9 @@ export const ConfigurationForm: React.FC<Props> = ({
         display_mode: config.display_mode,
         footer_text: config.footer_text || '',
         theme: config.theme,
-        primary_color: config.primary_color
+        primary_color: config.primary_color,
+        scraping_cap: config.scraping_cap || pharmacy?.postal_code || '',
+        scraping_city: config.scraping_city || pharmacy?.city || ''
       };
       setFormData(newFormData);
       onLiveFormDataChange(newFormData);
@@ -140,7 +147,7 @@ export const ConfigurationForm: React.FC<Props> = ({
       setFooterBgColor(newFooterColor);
       onLiveFooterBgColorChange(newFooterColor);
     }
-  }, [config]);
+  }, [config, pharmacy]);
 
   // Convert PDF first page to image
   const convertPdfToImage = async (pdfFile: File): Promise<File> => {
@@ -382,7 +389,7 @@ export const ConfigurationForm: React.FC<Props> = ({
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">Header</h3>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-5 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Logo</label>
             {config?.logo_path && !logoFile && (
@@ -392,9 +399,29 @@ export const ConfigurationForm: React.FC<Props> = ({
             {logoFile && <p className="text-xs text-green-600 mt-1">Nuovo: {logoFile.name}</p>}
           </div>
 
-          <div>
+          <div className="col-span-2">
             <label className="block text-xs font-medium text-gray-700 mb-1">Nome Farmacia *</label>
             <input type="text" required value={formData.pharmacy_name || ''} onChange={(e) => updateFormData({ pharmacy_name: e.target.value })} className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500" />
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Tema</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => updateFormData({ theme: 'light' })}
+                className={`flex-1 px-2 py-1.5 text-xs rounded border-2 transition ${formData.theme === 'light' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+              >
+                ☀️ Giorno
+              </button>
+              <button
+                type="button"
+                onClick={() => updateFormData({ theme: 'dark' })}
+                className={`flex-1 px-2 py-1.5 text-xs rounded border-2 transition ${formData.theme === 'dark' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+              >
+                🌙 Notte
+              </button>
+            </div>
           </div>
         </div>
 
@@ -409,24 +436,6 @@ export const ConfigurationForm: React.FC<Props> = ({
             onColorSelect={(color) => updateFormData({ primary_color: color })}
             label="Colore sfondo"
           />
-        </div>
-
-        {/* Theme Toggle */}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => updateFormData({ theme: 'light' })}
-            className={`flex-1 px-2 py-1.5 text-xs rounded border-2 transition ${formData.theme === 'light' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-          >
-            ☀️ Giorno
-          </button>
-          <button
-            type="button"
-            onClick={() => updateFormData({ theme: 'dark' })}
-            className={`flex-1 px-2 py-1.5 text-xs rounded border-2 transition ${formData.theme === 'dark' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
-          >
-            🌙 Notte
-          </button>
         </div>
 
         {/* Hours - Compact */}
@@ -458,27 +467,24 @@ export const ConfigurationForm: React.FC<Props> = ({
 
       {/* Content Section */}
       <div className="space-y-2 border-t pt-2">
-        <h3 className="text-sm font-semibold text-gray-700">Contenuto</h3>
+        <h3 className="text-sm font-semibold text-gray-700">Aggiorna la visualizzazione delle Farmacie di Turno</h3>
 
         {/* Display Mode Selection */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Modalità Visualizzazione</label>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => updateFormData({ display_mode: DisplayMode.IMAGE })}
-              className={`flex-1 px-3 py-2 text-xs rounded border-2 transition ${formData.display_mode === DisplayMode.IMAGE ? 'border-blue-500 bg-blue-50 font-semibold' : 'border-gray-200'}`}
-            >
-              📷 Immagine/PDF
-            </button>
-            <button
-              type="button"
-              onClick={() => updateFormData({ display_mode: DisplayMode.SCRAPED })}
-              className={`flex-1 px-3 py-2 text-xs rounded border-2 transition ${formData.display_mode === DisplayMode.SCRAPED ? 'border-blue-500 bg-blue-50 font-semibold' : 'border-gray-200'}`}
-            >
-              🌐 Farmacie di Turno
-            </button>
-          </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => updateFormData({ display_mode: DisplayMode.SCRAPED })}
+            className={`flex-1 px-3 py-2 text-xs rounded border-2 transition ${formData.display_mode === DisplayMode.SCRAPED ? 'border-blue-500 bg-blue-50 font-semibold' : 'border-gray-200'}`}
+          >
+            🔄 Aggiorna automaticamente
+          </button>
+          <button
+            type="button"
+            onClick={() => updateFormData({ display_mode: DisplayMode.IMAGE })}
+            className={`flex-1 px-3 py-2 text-xs rounded border-2 transition ${formData.display_mode === DisplayMode.IMAGE ? 'border-blue-500 bg-blue-50 font-semibold' : 'border-gray-200'}`}
+          >
+            📷 Carica immagine o PDF
+          </button>
         </div>
 
         {/* Image Mode Fields */}
