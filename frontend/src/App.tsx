@@ -11,6 +11,7 @@ import ShiftsPage from '@/pages/ShiftsPage'
 import DevicesPage from '@/pages/DevicesPage'
 import DashboardPage from '@/pages/DashboardPage'
 import { BachecaPage } from '@/pages/BachecaPage'
+import { PublicDisplayPage } from '@/pages/PublicDisplayPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,9 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+
+          {/* Public route for display - no authentication required */}
+          <Route path="/display/:pharmacyId" element={<PublicDisplayPage />} />
 
           <Route
             path="/"
