@@ -3,9 +3,8 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import itLocale from '@fullcalendar/core/locales/it.js'
+import itLocale from '@fullcalendar/core/locales/it'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { usePharmacies } from '@/hooks/usePharmacies'
 import { useShifts, useDeleteShift } from '@/hooks/useShifts'
 import ShiftDialog from '@/components/shifts/ShiftDialog'
@@ -109,7 +108,7 @@ export default function ShiftsPage() {
             select={handleDateSelect}
             eventClick={handleEventClick}
             height="auto"
-            datesSet={(dateInfo) => {
+            datesSet={(dateInfo: { startStr: string }) => {
               setSelectedDate(dateInfo.startStr)
             }}
           />

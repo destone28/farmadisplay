@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface Props {
@@ -155,8 +155,8 @@ export const ImageCropModal: React.FC<Props> = ({ imageFile, targetAspect, onSav
                 {imageSrc && (
                   <ReactCrop
                     crop={crop}
-                    onChange={(c) => setCrop(c)}
-                    onComplete={(c) => setCompletedCrop(c)}
+                    onChange={(c: Crop) => setCrop(c)}
+                    onComplete={(c: PixelCrop) => setCompletedCrop(c)}
                     aspect={targetAspect}
                     className="max-h-[500px]"
                   >
