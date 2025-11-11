@@ -135,9 +135,9 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 flex items-center justify-center p-2 overflow-hidden">
+          <div className="flex-1 overflow-hidden">
             {config.display_mode === 'image' && config.image_path ? (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="w-full h-full">
                 {config.image_path.endsWith('.pdf') ? (
                   <iframe
                     src={`${import.meta.env.VITE_API_URL}${config.image_path}#page=1`}
@@ -148,14 +148,16 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
                   <img
                     src={config.image_path.startsWith('blob:') ? config.image_path : `${import.meta.env.VITE_API_URL}${config.image_path}`}
                     alt="Display"
-                    className="max-w-full max-h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                 )}
               </div>
             ) : (
-              <div className="text-center opacity-50">
-                <p className="text-[9px]">Nessuna immagine configurata</p>
-                <p className="text-[8px] mt-1">Carica un'immagine per visualizzarla</p>
+              <div className="w-full h-full flex items-center justify-center text-center opacity-50">
+                <div>
+                  <p className="text-[9px]">Nessuna immagine configurata</p>
+                  <p className="text-[8px] mt-1">Carica un'immagine per visualizzarla</p>
+                </div>
               </div>
             )}
           </div>

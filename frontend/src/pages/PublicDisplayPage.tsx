@@ -170,9 +170,9 @@ export const PublicDisplayPage: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {config.display_mode === 'image' && config.image_path ? (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full">
             {config.image_path.endsWith('.pdf') ? (
               <iframe
                 src={`${import.meta.env.VITE_API_URL}${config.image_path}#page=1`}
@@ -183,14 +183,16 @@ export const PublicDisplayPage: React.FC = () => {
               <img
                 src={`${import.meta.env.VITE_API_URL}${config.image_path}`}
                 alt="Display"
-                className="max-w-full max-h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
           </div>
         ) : (
-          <div className="text-center opacity-50">
-            <p className="text-3xl">Nessun contenuto configurato</p>
-            <p className="text-xl mt-4">Configurare il display dalla dashboard</p>
+          <div className="w-full h-full flex items-center justify-center text-center opacity-50">
+            <div>
+              <p className="text-3xl">Nessun contenuto configurato</p>
+              <p className="text-xl mt-4">Configurare il display dalla dashboard</p>
+            </div>
           </div>
         )}
       </div>
