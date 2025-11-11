@@ -104,7 +104,7 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
                 {config.logo_path && (
                   <div className="w-8 h-8 flex-shrink-0 mr-1.5">
                     <img
-                      src={`${import.meta.env.VITE_API_URL}${config.logo_path}`}
+                      src={config.logo_path.startsWith('blob:') ? config.logo_path : `${import.meta.env.VITE_API_URL}${config.logo_path}`}
                       alt="Logo"
                       className="w-full h-full object-contain"
                     />
@@ -146,7 +146,7 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
                   />
                 ) : (
                   <img
-                    src={`${import.meta.env.VITE_API_URL}${config.image_path}`}
+                    src={config.image_path.startsWith('blob:') ? config.image_path : `${import.meta.env.VITE_API_URL}${config.image_path}`}
                     alt="Display"
                     className="max-w-full max-h-full object-contain"
                   />

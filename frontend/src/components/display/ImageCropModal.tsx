@@ -66,7 +66,13 @@ export const ImageCropModal: React.FC<Props> = ({ imageFile, targetAspect, onSav
   };
 
   const handleSave = async () => {
-    if (!completedCrop || !imgRef.current || !canvasRef.current) {
+    if (!imgRef.current || !canvasRef.current) {
+      return;
+    }
+
+    // If no crop selection, save original image without modification
+    if (!completedCrop) {
+      onSave(imageFile);
       return;
     }
 
@@ -292,10 +298,10 @@ export const ImageCropModal: React.FC<Props> = ({ imageFile, targetAspect, onSav
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || !completedCrop}
+            disabled={saving}
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
           >
-            {saving ? 'Salvataggio...' : 'Applica Ritaglio'}
+            {saving ? 'Salvataggio...' : completedCrop ? 'Applica Ritaglio' : 'Usa Immagine Originale'}
           </button>
         </div>
 
