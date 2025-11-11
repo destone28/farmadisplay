@@ -27,16 +27,6 @@ interface Props {
   onLiveImagePreview: (url: string | null) => void;
 }
 
-const DAYS = [
-  { key: 'monday', label: 'Lun' },
-  { key: 'tuesday', label: 'Mar' },
-  { key: 'wednesday', label: 'Mer' },
-  { key: 'thursday', label: 'Gio' },
-  { key: 'friday', label: 'Ven' },
-  { key: 'saturday', label: 'Sab' },
-  { key: 'sunday', label: 'Dom' }
-];
-
 const PRESET_COLORS = [
   { name: 'Blu Farmacia', value: '#0066CC' },
   { name: 'Verde Croce', value: '#00A651' },
@@ -378,8 +368,6 @@ export const ConfigurationForm: React.FC<Props> = ({
     <form onSubmit={handleSubmit} className="space-y-3 bg-white p-4 rounded-lg shadow h-full overflow-y-auto">
       {/* Header Section */}
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-gray-700 border-b pb-1">Header</h3>
-
         <div className="grid grid-cols-5 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Logo</label>
@@ -429,54 +417,6 @@ export const ConfigurationForm: React.FC<Props> = ({
           />
         </div>
 
-        {/* Hours - Compact with flexible format support */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
-            Orari Settimanali
-            <span className="ml-2 text-[10px] text-gray-500 font-normal">(es: 08:30-13, 16-20 oppure Chiuso)</span>
-          </label>
-          <div className="grid grid-cols-7 gap-1 text-xs">
-            {DAYS.map(day => {
-              const dayHours = hours[day.key as keyof PharmacyHours];
-              // Format stored value as string for display
-              let displayValue = '';
-              if (dayHours) {
-                if (typeof dayHours === 'string') {
-                  displayValue = dayHours;
-                } else if (dayHours.open && dayHours.close) {
-                  displayValue = `${dayHours.open}-${dayHours.close}`;
-                }
-              }
-
-              return (
-                <div key={day.key} className="text-center">
-                  <div className="font-medium text-gray-600 mb-1">{day.label}</div>
-                  <input
-                    type="text"
-                    value={displayValue}
-                    onChange={(e) => {
-                      const value = e.target.value.trim();
-                      const newHours = { ...hours };
-                      if (!value || value.toLowerCase() === 'chiuso') {
-                        delete newHours[day.key as keyof PharmacyHours];
-                      } else {
-                        // Store as string to support flexible formats
-                        (newHours as any)[day.key] = value;
-                      }
-                      setHours(newHours);
-                      onLiveHoursChange(newHours);
-                    }}
-                    placeholder="Chiuso"
-                    className="w-full px-1 py-1 border rounded text-[9px] text-center"
-                  />
-                  <p className="text-[8px] text-gray-400 mt-0.5 leading-tight">
-                    Formato 24h
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       {/* Content Section */}

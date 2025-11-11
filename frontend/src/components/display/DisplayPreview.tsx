@@ -100,9 +100,9 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
       if (todayHours) {
         // Handle both string format (e.g., "08:30-13, 16-20") and object format
         if (typeof todayHours === 'string') {
-          return `Oggi: ${todayHours}`;
+          return `Orario di oggi: ${todayHours}`;
         } else if (todayHours.open && todayHours.close) {
-          return `Oggi: ${todayHours.open} - ${todayHours.close}`;
+          return `Orario di oggi: ${todayHours.open} - ${todayHours.close}`;
         }
       }
     } catch {

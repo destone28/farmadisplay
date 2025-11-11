@@ -121,9 +121,9 @@ export const PublicDisplayPage: React.FC = () => {
       if (todayHours) {
         // Handle both string format (e.g., "08:30-13, 16-20") and object format
         if (typeof todayHours === 'string') {
-          return `Oggi: ${todayHours}`;
+          return `Orario di oggi: ${todayHours}`;
         } else if (todayHours.open && todayHours.close) {
-          return `Oggi: ${todayHours.open} - ${todayHours.close}`;
+          return `Orario di oggi: ${todayHours.open} - ${todayHours.close}`;
         }
       }
     } catch {
@@ -244,9 +244,10 @@ export const PublicDisplayPage: React.FC = () => {
                 {pharmacies.slice(0, 10).map((pharmacy, index) => (
                   <div
                     key={index}
-                    className="border-l-4 rounded p-4 flex items-start gap-4"
+                    className="border-2 border-l-4 rounded p-4 flex items-start gap-4"
                     style={{
                       borderLeftColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary,
+                      borderColor: colors.border,
                       backgroundColor: config.theme === 'dark' ? '#2a2a2a' : '#f9fafb'
                     }}
                   >
@@ -272,10 +273,11 @@ export const PublicDisplayPage: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-base opacity-75 mt-1" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.postal_code} {pharmacy.city} ({pharmacy.province})
+                        📍 {pharmacy.address}, {pharmacy.city} ({pharmacy.province})
+                        {pharmacy.postal_code && <span className="ml-2">• CAP: {pharmacy.postal_code}</span>}
                         {pharmacy.distance_km && <span className="ml-2">• {pharmacy.distance_km} km</span>}
                       </p>
-                      <div className="flex items-center gap-4 mt-2">
+                      <div className="flex flex-col gap-1 mt-2">
                         {pharmacy.opening_hours && (
                           <p className="text-base" style={{ color: colors.text }}>
                             🕐 {pharmacy.opening_hours}
