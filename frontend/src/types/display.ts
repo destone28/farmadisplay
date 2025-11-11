@@ -51,7 +51,7 @@ export interface DisplayConfig {
 export interface DisplayConfigCreate {
   pharmacy_id: string;
   pharmacy_name: string;
-  pharmacy_hours?: string;
+  pharmacy_hours?: string | null;
   subtitle_text?: string;
   display_mode?: DisplayMode;
   footer_text?: string;
@@ -62,7 +62,7 @@ export interface DisplayConfigCreate {
 
 export interface DisplayConfigUpdate {
   pharmacy_name?: string;
-  pharmacy_hours?: string;
+  pharmacy_hours?: string | null;
   subtitle_text?: string;
   display_mode?: DisplayMode;
   scraping_cap?: string;

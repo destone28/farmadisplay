@@ -6,7 +6,7 @@ interface Props {
   refreshInterval?: number;
 }
 
-export const DisplayPreview: React.FC<Props> = ({ config, refreshInterval = 10000 }) => {
+export const DisplayPreview: React.FC<Props> = ({ config }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every second
