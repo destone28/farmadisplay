@@ -183,7 +183,7 @@ export const PublicDisplayPage: React.FC = () => {
               <img
                 src={`${import.meta.env.VITE_API_URL}${config.image_path}`}
                 alt="Display"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-fill"
               />
             )}
           </div>

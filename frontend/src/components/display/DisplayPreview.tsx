@@ -148,7 +148,7 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
                   <img
                     src={config.image_path.startsWith('blob:') ? config.image_path : `${import.meta.env.VITE_API_URL}${config.image_path}`}
                     alt="Display"
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-fill"
                   />
                 )}
               </div>
