@@ -10,6 +10,7 @@ import PharmaciesPage from '@/pages/PharmaciesPage'
 import ShiftsPage from '@/pages/ShiftsPage'
 import DevicesPage from '@/pages/DevicesPage'
 import DashboardPage from '@/pages/DashboardPage'
+import { BachecaPage } from '@/pages/BachecaPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,7 @@ function App() {
             <Route path="pharmacies" element={<PharmaciesPage />} />
             <Route path="shifts" element={<ShiftsPage />} />
             <Route path="devices" element={<DevicesPage />} />
+            <Route path="bacheca" element={<BachecaPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

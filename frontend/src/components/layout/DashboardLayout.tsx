@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Home, MapPin, Calendar, Monitor, LogOut, Menu, X } from 'lucide-react'
+import { Home, MapPin, Calendar, Monitor, LogOut, Menu, X, Tv } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -9,6 +9,7 @@ const navigation = [
   { name: 'Farmacie', href: '/pharmacies', icon: MapPin },
   { name: 'Turni', href: '/shifts', icon: Calendar },
   { name: 'Dispositivi', href: '/devices', icon: Monitor },
+  { name: 'Bacheca', href: '/bacheca', icon: Tv },
 ]
 
 export default function DashboardLayout() {
