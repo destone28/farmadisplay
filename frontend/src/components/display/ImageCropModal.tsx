@@ -75,29 +75,54 @@ export const ImageCropModal: React.FC<Props> = ({ imageFile, targetAspect, onSav
     try {
       const image = imgRef.current;
       const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false });
 
       if (!ctx) {
         throw new Error('No 2d context');
       }
 
-      // Set canvas size to match cropped area
+      // Calculate scale factors
       const scaleX = image.naturalWidth / image.width;
       const scaleY = image.naturalHeight / image.height;
 
-      canvas.width = completedCrop.width * scaleX;
-      canvas.height = completedCrop.height * scaleY;
+      // Calculate target dimensions
+      // For 17" 4:3 monitor rotated (1024x768 becomes 768x1024)
+      // We want maximum quality, so use natural resolution up to reasonable limit
+      const maxWidth = 1200; // Good balance between quality and file size
+      const maxHeight = maxWidth / targetAspect; // Maintain 3:4 aspect ratio
 
-      // Apply transformations
-      ctx.save();
+      let targetWidth = completedCrop.width * scaleX;
+      let targetHeight = completedCrop.height * scaleY;
 
-      // Apply rotation from center
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate((rotation * Math.PI) / 180);
-      ctx.scale(scale, scale);
-      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      // Scale down if too large
+      if (targetWidth > maxWidth || targetHeight > maxHeight) {
+        const scale = Math.min(maxWidth / targetWidth, maxHeight / targetHeight);
+        targetWidth *= scale;
+        targetHeight *= scale;
+      }
 
-      // Draw cropped image
+      // Set canvas to target size (optimized for display)
+      canvas.width = Math.round(targetWidth);
+      canvas.height = Math.round(targetHeight);
+
+      // Enable image smoothing for better quality
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // Fill white background (for JPEGs)
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Apply transformations if needed
+      if (rotation !== 0 || scale !== 1) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.scale(scale, scale);
+        ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      }
+
+      // Draw cropped and scaled image
       ctx.drawImage(
         image,
         completedCrop.x * scaleX,
@@ -110,22 +135,28 @@ export const ImageCropModal: React.FC<Props> = ({ imageFile, targetAspect, onSav
         canvas.height
       );
 
-      ctx.restore();
+      if (rotation !== 0 || scale !== 1) {
+        ctx.restore();
+      }
 
-      // Convert canvas to blob
+      // Convert canvas to blob with high quality
+      const mimeType = imageFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const quality = mimeType === 'image/jpeg' ? 0.92 : undefined;
+
       canvas.toBlob((blob) => {
         if (!blob) {
           throw new Error('Failed to create blob');
         }
 
         // Create new file with cropped image
-        const croppedFile = new File([blob], imageFile.name, {
-          type: imageFile.type,
+        const fileName = imageFile.name.replace(/\.[^.]+$/, mimeType === 'image/png' ? '.png' : '.jpg');
+        const croppedFile = new File([blob], fileName, {
+          type: mimeType,
           lastModified: Date.now()
         });
 
         onSave(croppedFile);
-      }, imageFile.type, 0.95);
+      }, mimeType, quality);
 
     } catch (error) {
       console.error('Crop error:', error);

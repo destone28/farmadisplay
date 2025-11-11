@@ -141,22 +141,27 @@ async def add_request_id(request: Request, call_next):
     return response
 
 
-# Rate limiting middleware
+# Rate limiting middleware (optional - requires Redis)
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     """
     Rate limiting middleware using Redis.
     Limit: 100 requests per minute per IP.
+    If Redis is unavailable, requests are allowed through without limiting.
     """
     # Get client IP
     client_ip = request.client.host if request.client else "unknown"
 
-    # Skip rate limiting for health checks
+    # Skip rate limiting for health checks and root
     if request.url.path.startswith("/health") or request.url.path == "/":
         return await call_next(request)
 
+    # Try to apply rate limiting, but don't block if Redis is down
     try:
-        redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=True)
+        redis_client = Redis.from_url(settings.REDIS_URL, decode_responses=True, socket_connect_timeout=1)
+
+        # Test connection
+        redis_client.ping()
 
         # Rate limit key
         rate_limit_key = f"rate_limit:{client_ip}"
@@ -177,11 +182,17 @@ async def rate_limit_middleware(request: Request, call_next):
             # Increment counter
             redis_client.incr(rate_limit_key)
 
+        redis_client.close()
+
     except HTTPException:
+        # Re-raise rate limit exceeded errors
         raise
     except Exception as e:
-        # If Redis is down, log but don't block requests
-        print(f"Rate limiting error: {e}")
+        # If Redis is down or connection fails, allow request through
+        # Only log once per startup to avoid spam
+        if not hasattr(rate_limit_middleware, '_redis_error_logged'):
+            print(f"Rate limiting disabled: Redis not available ({e})")
+            rate_limit_middleware._redis_error_logged = True
 
     response = await call_next(request)
     return response
