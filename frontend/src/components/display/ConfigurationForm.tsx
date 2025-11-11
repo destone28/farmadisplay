@@ -460,17 +460,88 @@ export const ConfigurationForm: React.FC<Props> = ({
       <div className="space-y-2 border-t pt-2">
         <h3 className="text-sm font-semibold text-gray-700">Contenuto</h3>
 
+        {/* Display Mode Selection */}
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Immagine/PDF</label>
-          {config?.image_path && !imageFile && (
-            <div className="mb-2">
-              <img src={`${import.meta.env.VITE_API_URL}${config.image_path}`} alt="Display" className="max-h-20 object-contain border rounded bg-white p-1" />
-            </div>
-          )}
-          <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileChange(e, 'image')} className="block w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700" />
-          {imageFile && <p className="text-xs text-green-600 mt-1">Nuovo: {imageFile.name}</p>}
-          <p className="text-[10px] text-gray-500 mt-1">PDF: verrà convertito automaticamente (prima pagina)</p>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Modalità Visualizzazione</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => updateFormData({ display_mode: DisplayMode.IMAGE })}
+              className={`flex-1 px-3 py-2 text-xs rounded border-2 transition ${formData.display_mode === DisplayMode.IMAGE ? 'border-blue-500 bg-blue-50 font-semibold' : 'border-gray-200'}`}
+            >
+              📷 Immagine/PDF
+            </button>
+            <button
+              type="button"
+              onClick={() => updateFormData({ display_mode: DisplayMode.SCRAPED })}
+              className={`flex-1 px-3 py-2 text-xs rounded border-2 transition ${formData.display_mode === DisplayMode.SCRAPED ? 'border-blue-500 bg-blue-50 font-semibold' : 'border-gray-200'}`}
+            >
+              🌐 Farmacie di Turno
+            </button>
+          </div>
         </div>
+
+        {/* Image Mode Fields */}
+        {formData.display_mode === DisplayMode.IMAGE && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Immagine/PDF</label>
+            {config?.image_path && !imageFile && (
+              <div className="mb-2">
+                <img src={`${import.meta.env.VITE_API_URL}${config.image_path}`} alt="Display" className="max-h-20 object-contain border rounded bg-white p-1" />
+              </div>
+            )}
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileChange(e, 'image')} className="block w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700" />
+            {imageFile && <p className="text-xs text-green-600 mt-1">Nuovo: {imageFile.name}</p>}
+            <p className="text-[10px] text-gray-500 mt-1">PDF: verrà convertito automaticamente (prima pagina)</p>
+          </div>
+        )}
+
+        {/* Scraped Mode Fields */}
+        {formData.display_mode === DisplayMode.SCRAPED && (
+          <div className="space-y-2">
+            <div className="bg-blue-50 border border-blue-200 rounded p-3">
+              <p className="text-xs text-blue-800 mb-2">
+                📍 Questa modalità mostra automaticamente le farmacie di turno o aperte nella tua zona.
+              </p>
+              <p className="text-[10px] text-blue-600">
+                I dati vengono aggiornati automaticamente da farmaciediturno.org ogni 30 secondi.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">CAP *</label>
+                <input
+                  type="text"
+                  value={formData.scraping_cap || ''}
+                  onChange={(e) => updateFormData({ scraping_cap: e.target.value })}
+                  placeholder="es. 21049"
+                  maxLength={5}
+                  className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5">Inserisci il CAP della tua zona</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Città (opzionale)</label>
+                <input
+                  type="text"
+                  value={formData.scraping_city || ''}
+                  onChange={(e) => updateFormData({ scraping_city: e.target.value })}
+                  placeholder="es. Saronno"
+                  className="w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5">Alternativa al CAP</p>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded p-2">
+              <p className="text-[10px] text-amber-800">
+                ⚠️ Richiesto: almeno CAP o Città. Il CAP è più preciso.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer Section */}

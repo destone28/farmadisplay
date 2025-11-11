@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { displayConfigService } from '../services/displayConfigService';
 import { DisplayConfig } from '../types/display';
+import { scrapingService, PharmacyShiftInfo } from '../services/scrapingService';
 
 export const PublicDisplayPage: React.FC = () => {
   const { pharmacyId } = useParams<{ pharmacyId: string }>();
@@ -9,6 +10,8 @@ export const PublicDisplayPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [pharmacies, setPharmacies] = useState<PharmacyShiftInfo[]>([]);
+  const [scrapingError, setScrapingError] = useState<string | null>(null);
 
   // Fetch display config
   useEffect(() => {
@@ -46,6 +49,32 @@ export const PublicDisplayPage: React.FC = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch scraped pharmacies if in SCRAPED mode
+  useEffect(() => {
+    if (!config || config.display_mode !== 'scraped') return;
+
+    const fetchPharmacies = async () => {
+      try {
+        const response = await scrapingService.searchPharmacies(
+          config.scraping_cap || undefined,
+          config.scraping_city || undefined
+        );
+        setPharmacies(response.pharmacies);
+        setScrapingError(null);
+      } catch (err: any) {
+        console.error('Error fetching pharmacies:', err);
+        setScrapingError('Errore nel caricamento delle farmacie');
+      }
+    };
+
+    fetchPharmacies();
+
+    // Refresh pharmacies every 30 seconds
+    const refreshInterval = setInterval(fetchPharmacies, 30000);
+
+    return () => clearInterval(refreshInterval);
+  }, [config]);
 
   // Theme-based colors
   const getThemeColors = () => {
@@ -171,6 +200,7 @@ export const PublicDisplayPage: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
+        {/* Image Mode */}
         {config.display_mode === 'image' && config.image_path ? (
           <div className="w-full h-full">
             {config.image_path.endsWith('.pdf') ? (
@@ -185,6 +215,83 @@ export const PublicDisplayPage: React.FC = () => {
                 alt="Display"
                 className="w-full h-full object-fill"
               />
+            )}
+          </div>
+        ) : config.display_mode === 'scraped' ? (
+          /* Scraped Mode - Pharmacy List */
+          <div className="w-full h-full overflow-y-auto p-6">
+            {scrapingError ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">⚠️</div>
+                  <p className="text-2xl text-red-600">{scrapingError}</p>
+                </div>
+              </div>
+            ) : pharmacies.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-xl text-gray-600">Caricamento farmacie...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {pharmacies.slice(0, 10).map((pharmacy, index) => (
+                  <div
+                    key={index}
+                    className="border-2 rounded-lg p-4 transition-all hover:shadow-lg"
+                    style={{
+                      borderColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary,
+                      backgroundColor: colors.bg
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      {pharmacy.image_url && (
+                        <img
+                          src={pharmacy.image_url}
+                          alt={pharmacy.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold mb-1" style={{ color: colors.text }}>
+                          {pharmacy.name}
+                        </h3>
+                        <p className="text-sm opacity-75 mb-2" style={{ color: colors.text }}>
+                          {pharmacy.address}
+                          <br />
+                          {pharmacy.postal_code} {pharmacy.city} ({pharmacy.province})
+                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className="px-3 py-1 rounded-full text-xs font-bold text-white"
+                            style={{
+                              backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary
+                            }}
+                          >
+                            {pharmacy.status}
+                          </span>
+                          {pharmacy.distance_km && (
+                            <span className="text-xs opacity-60" style={{ color: colors.text }}>
+                              📍 {pharmacy.distance_km} km
+                            </span>
+                          )}
+                        </div>
+                        {pharmacy.opening_hours && (
+                          <p className="text-sm mb-1" style={{ color: colors.text }}>
+                            🕐 {pharmacy.opening_hours}
+                          </p>
+                        )}
+                        {pharmacy.phone && (
+                          <p className="text-sm font-semibold" style={{ color: colors.text }}>
+                            📞 {pharmacy.phone}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         ) : (
