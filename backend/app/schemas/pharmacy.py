@@ -26,7 +26,7 @@ class PharmacyBase(BaseModel):
     email: Optional[EmailStr] = None
     logo_url: Optional[str] = Field(None, max_length=500)  # Deprecated
     logo_path: Optional[str] = Field(None, max_length=500)
-    opening_hours: Optional[str] = Field(None, max_length=200)
+    opening_hours: Optional[str] = Field(None, max_length=1000)
 
 
 class PharmacyCreate(PharmacyBase):
@@ -47,7 +47,7 @@ class PharmacyUpdate(BaseModel):
     location: Optional[LocationData] = None
     logo_url: Optional[str] = Field(None, max_length=500)  # Deprecated
     logo_path: Optional[str] = Field(None, max_length=500)
-    opening_hours: Optional[str] = Field(None, max_length=200)
+    opening_hours: Optional[str] = Field(None, max_length=1000)
     is_active: Optional[bool] = None
 
 

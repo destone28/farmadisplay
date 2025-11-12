@@ -2,6 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Plus, Trash2, Copy } from 'lucide-react'
 import { useState } from 'react'
 
@@ -52,7 +53,8 @@ export const getDefaultWeeklyHours = (): WeeklyHours => ({
 })
 
 export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputProps) {
-  const [copyMenuOpen, setCopyMenuOpen] = useState<keyof WeeklyHours | null>(null)
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false)
+  const [currentDay, setCurrentDay] = useState<keyof WeeklyHours | null>(null)
 
   const addTimeSlot = (day: keyof WeeklyHours) => {
     const updated = {
@@ -89,15 +91,22 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
     onChange(updated)
   }
 
-  const copyHoursFrom = (targetDay: keyof WeeklyHours, sourceDay: keyof WeeklyHours) => {
+  const openCopyDialog = (day: keyof WeeklyHours) => {
+    setCurrentDay(day)
+    setCopyDialogOpen(true)
+  }
+
+  const copyHoursFrom = (sourceDay: keyof WeeklyHours) => {
+    if (!currentDay) return
     const updated = {
       ...value,
-      [targetDay]: {
+      [currentDay]: {
         slots: value[sourceDay].slots.map(slot => ({ ...slot })),
       },
     }
     onChange(updated)
-    setCopyMenuOpen(null)
+    setCopyDialogOpen(false)
+    setCurrentDay(null)
   }
 
   return (
@@ -118,7 +127,7 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="overflow-visible">
+            <AccordionContent>
               <div className="space-y-3">
                 {value[day].slots.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nessun orario configurato (chiuso)</p>
@@ -174,39 +183,16 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
                     <Plus className="h-3 w-3 mr-1" />
                     Aggiungi Orario
                   </Button>
-                  <div className="relative">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCopyMenuOpen(copyMenuOpen === day ? null : day)}
-                      className="w-full"
-                    >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copia da
-                    </Button>
-                    {copyMenuOpen === day && (
-                      <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto" style={{ zIndex: 1000 }}>
-                        {(Object.keys(dayNames) as Array<keyof WeeklyHours>)
-                          .filter(d => d !== day)
-                          .map((sourceDay) => (
-                            <button
-                              key={sourceDay}
-                              type="button"
-                              onClick={() => copyHoursFrom(day, sourceDay)}
-                              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors"
-                            >
-                              {dayNames[sourceDay]}
-                              <span className="text-xs text-muted-foreground ml-2">
-                                ({value[sourceDay].slots.length === 0
-                                  ? 'Chiuso'
-                                  : `${value[sourceDay].slots.length} orari`})
-                              </span>
-                            </button>
-                          ))}
-                      </div>
-                    )}
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openCopyDialog(day)}
+                    className="w-full"
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Copia da
+                  </Button>
                 </div>
               </div>
             </AccordionContent>
@@ -216,6 +202,37 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
       <p className="text-xs text-muted-foreground">
         Configura gli orari di apertura per ogni giorno della settimana. Puoi aggiungere più fasce orarie per giorno.
       </p>
+
+      {/* Copy Hours Dialog */}
+      <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Copia orari da un altro giorno</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {currentDay && (Object.keys(dayNames) as Array<keyof WeeklyHours>)
+              .filter(d => d !== currentDay)
+              .map((sourceDay) => (
+                <Button
+                  key={sourceDay}
+                  type="button"
+                  variant="outline"
+                  onClick={() => copyHoursFrom(sourceDay)}
+                  className="w-full justify-between"
+                >
+                  <span>{dayNames[sourceDay]}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {value[sourceDay].slots.length === 0
+                      ? 'Chiuso'
+                      : value[sourceDay].slots.length === 1
+                      ? '1 orario'
+                      : `${value[sourceDay].slots.length} orari`}
+                  </span>
+                </Button>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
