@@ -255,7 +255,7 @@ export const PublicDisplayPage: React.FC = () => {
                     key={index}
                     className="border-2 border-l-4 rounded p-3 flex items-center gap-3"
                     style={{
-                      borderLeftColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary,
+                      borderLeftColor: pharmacy.status === 'TURNO' ? colors.secondary : colors.primary,
                       borderColor: colors.border,
                       backgroundColor: config.theme === 'dark' ? '#2a2a2a' : '#f9fafb'
                     }}
@@ -265,16 +265,19 @@ export const PublicDisplayPage: React.FC = () => {
                         {pharmacy.name}
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.postal_code} {pharmacy.city} ({pharmacy.province})
+                        📍 {pharmacy.address}, {pharmacy.postal_code} - {pharmacy.city} ({pharmacy.province})
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
                       <div className="flex flex-col gap-0.5 mt-1 text-sm">
                         {pharmacy.opening_hours && (
                           <div style={{ color: colors.text }}>
-                            🕐 Apertura: {pharmacy.opening_hours}
+                            🕐 Apertura: {pharmacy.opening_hours.includes('Turno') ? pharmacy.opening_hours :
+                              pharmacy.shift_hours && !pharmacy.opening_hours.toLowerCase().includes('turno')
+                                ? `${pharmacy.opening_hours} - Turno: ${pharmacy.shift_hours}`
+                                : pharmacy.opening_hours}
                           </div>
                         )}
-                        {pharmacy.shift_hours && (
+                        {pharmacy.shift_hours && !pharmacy.opening_hours?.toLowerCase().includes('turno') && (
                           <div style={{ color: colors.text }}>
                             🔄 Turno: {pharmacy.shift_hours}
                           </div>
@@ -303,7 +306,7 @@ export const PublicDisplayPage: React.FC = () => {
                     <span
                       className="px-3 py-1 rounded-full text-xs font-bold text-white flex-shrink-0"
                       style={{
-                        backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary
+                        backgroundColor: pharmacy.status === 'TURNO' ? colors.secondary : colors.primary
                       }}
                     >
                       {pharmacy.status}
