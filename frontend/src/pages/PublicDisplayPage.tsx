@@ -190,6 +190,9 @@ export const PublicDisplayPage: React.FC = () => {
             )}
             <div>
               <h1 className="text-4xl font-bold leading-tight">{pharmacy?.name || config.pharmacy_name}</h1>
+              {pharmacy?.opening_hours && (
+                <p className="text-xl opacity-70 mt-2">Orari: {pharmacy.opening_hours}</p>
+              )}
               {getHoursDisplay() && (
                 <p className="text-2xl opacity-70 mt-2">{getHoursDisplay()}</p>
               )}
@@ -206,7 +209,7 @@ export const PublicDisplayPage: React.FC = () => {
 
       {/* Subtitle */}
       <div
-        className="px-8 py-5 text-center font-semibold text-3xl"
+        className="px-8 py-3 text-center font-semibold text-2xl"
         style={{ backgroundColor: colors.primary, color: '#ffffff' }}
       >
         {config.subtitle_text || 'Farmacie di turno'}
@@ -265,16 +268,27 @@ export const PublicDisplayPage: React.FC = () => {
                         {pharmacy.name}
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.postal_code} - {pharmacy.city} ({pharmacy.province})
+                        📍 {pharmacy.address}, {pharmacy.postal_code}{pharmacy.city ? ` - ${pharmacy.city}` : ''} ({pharmacy.province})
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
                       <div className="flex flex-col gap-0.5 mt-1 text-sm">
                         {pharmacy.opening_hours && (
                           <div style={{ color: colors.text }}>
-                            🕐 Apertura: {pharmacy.opening_hours.includes('Turno') ? pharmacy.opening_hours :
-                              pharmacy.shift_hours && !pharmacy.opening_hours.toLowerCase().includes('turno')
-                                ? `${pharmacy.opening_hours} - Turno: ${pharmacy.shift_hours}`
-                                : pharmacy.opening_hours}
+                            🕐 Apertura: {(() => {
+                              const hours = pharmacy.opening_hours;
+                              // Check if "Turno" text is already embedded in opening_hours
+                              const hasTurnoInText = hours.toLowerCase().includes('turno');
+
+                              if (hasTurnoInText) {
+                                // Already contains shift info, return as is
+                                return hours;
+                              } else if (pharmacy.shift_hours) {
+                                // Add shift hours with separator
+                                return `${hours} - Turno: ${pharmacy.shift_hours}`;
+                              } else {
+                                return hours;
+                              }
+                            })()}
                           </div>
                         )}
                         {pharmacy.shift_hours && !pharmacy.opening_hours?.toLowerCase().includes('turno') && (
@@ -329,7 +343,7 @@ export const PublicDisplayPage: React.FC = () => {
       {/* Footer */}
       {config.footer_text && (
         <div
-          className="px-8 py-5 text-center text-xl"
+          className="px-8 py-3 text-center text-lg"
           style={{ backgroundColor: config.secondary_color, color: '#ffffff' }}
         >
           {config.footer_text}

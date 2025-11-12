@@ -35,6 +35,7 @@ export interface Pharmacy {
   email?: string
   logo_url?: string  // Deprecated
   logo_path?: string
+  opening_hours?: string
   location?: {
     latitude: number
     longitude: number
@@ -53,6 +54,7 @@ export interface PharmacyCreate {
   email?: string
   logo_url?: string  // Deprecated
   logo_path?: string
+  opening_hours?: string
   location?: {
     latitude: number
     longitude: number

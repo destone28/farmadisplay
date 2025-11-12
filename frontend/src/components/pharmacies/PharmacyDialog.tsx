@@ -24,6 +24,7 @@ const pharmacySchema = z.object({
   postal_code: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email('Email non valida').optional().or(z.literal('')),
+  opening_hours: z.string().optional(),
 })
 
 interface PharmacyDialogProps {
@@ -213,6 +214,18 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="opening_hours">Orari di Apertura</Label>
+            <Input
+              id="opening_hours"
+              placeholder="es: 08:30-13:00, 16:00-20:00"
+              {...register('opening_hours')}
+            />
+            <p className="text-xs text-muted-foreground">
+              Formato suggerito: 08:30-13:00, 16:00-20:00
+            </p>
           </div>
 
           <div className="space-y-2">
