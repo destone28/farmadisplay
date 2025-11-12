@@ -118,7 +118,7 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
                 </span>
               </div>
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="overflow-visible">
               <div className="space-y-3">
                 {value[day].slots.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nessun orario configurato (chiuso)</p>
@@ -186,7 +186,7 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
                       Copia da
                     </Button>
                     {copyMenuOpen === day && (
-                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-xl max-h-48 overflow-y-auto" style={{ zIndex: 1000 }}>
                         {(Object.keys(dayNames) as Array<keyof WeeklyHours>)
                           .filter(d => d !== day)
                           .map((sourceDay) => (

@@ -268,7 +268,7 @@ export const PublicDisplayPage: React.FC = () => {
                         {pharmacy.name}
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.postal_code}{pharmacy.city ? ` - ${pharmacy.city}` : ''} ({pharmacy.province})
+                        📍 {pharmacy.address}, {pharmacy.postal_code} - {pharmacy.city} ({pharmacy.province})
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
                       <div className="flex flex-col gap-0.5 mt-1 text-sm">

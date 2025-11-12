@@ -151,7 +151,26 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
       setWeeklyHours(getDefaultWeeklyHours())
     } catch (error: any) {
       console.error('Error saving pharmacy:', error)
-      const errorMessage = error.response?.data?.detail || error.message || 'Errore durante il salvataggio'
+
+      // Extract error message from various formats
+      let errorMessage = 'Errore durante il salvataggio'
+
+      if (error.response?.data?.detail) {
+        // Backend validation error
+        if (Array.isArray(error.response.data.detail)) {
+          // Pydantic validation errors
+          errorMessage = error.response.data.detail
+            .map((err: any) => `${err.loc?.join(' → ') || 'Campo'}: ${err.msg}`)
+            .join('\n')
+        } else if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail
+        } else {
+          errorMessage = JSON.stringify(error.response.data.detail)
+        }
+      } else if (error.message && typeof error.message === 'string') {
+        errorMessage = error.message
+      }
+
       alert(errorMessage)
     }
   }
