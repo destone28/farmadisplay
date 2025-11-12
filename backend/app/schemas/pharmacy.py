@@ -20,8 +20,8 @@ class PharmacyBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     address: Optional[str] = Field(None, max_length=500)
-    city: Optional[str] = Field(None, max_length=100)
-    postal_code: Optional[str] = Field(None, max_length=10)
+    city: str = Field(..., min_length=1, max_length=100)
+    postal_code: str = Field(..., min_length=1, max_length=10)
     phone: Optional[str] = Field(None, max_length=20)
     email: Optional[EmailStr] = None
     logo_url: Optional[str] = Field(None, max_length=500)  # Deprecated

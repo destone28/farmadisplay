@@ -16,15 +16,15 @@ import { Label } from '@/components/ui/label'
 import { useCreatePharmacy, useUpdatePharmacy } from '@/hooks/usePharmacies'
 import type { Pharmacy, PharmacyCreate } from '@/types'
 import { api } from '@/lib/api'
+import WeeklyHoursInput, { WeeklyHours, getDefaultWeeklyHours } from './WeeklyHoursInput'
 
 const pharmacySchema = z.object({
   name: z.string().min(1, 'Nome richiesto'),
   address: z.string().optional(),
-  city: z.string().optional(),
-  postal_code: z.string().optional(),
+  city: z.string().min(1, 'Città richiesta'),
+  postal_code: z.string().min(1, 'CAP richiesto'),
   phone: z.string().optional(),
   email: z.string().email('Email non valida').optional().or(z.literal('')),
-  opening_hours: z.string().optional(),
 })
 
 interface PharmacyDialogProps {
@@ -41,6 +41,7 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [weeklyHours, setWeeklyHours] = useState<WeeklyHours>(getDefaultWeeklyHours())
 
   const {
     register,
@@ -57,6 +58,19 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
       reset(pharmacy || {})
       setLogoFile(null)
       setLogoPreview(pharmacy?.logo_path ? `${import.meta.env.VITE_API_URL}${pharmacy.logo_path}` : null)
+
+      // Initialize weekly hours from pharmacy data
+      if (pharmacy?.opening_hours) {
+        try {
+          const parsed = JSON.parse(pharmacy.opening_hours)
+          setWeeklyHours(parsed)
+        } catch {
+          // If not JSON, use default
+          setWeeklyHours(getDefaultWeeklyHours())
+        }
+      } else {
+        setWeeklyHours(getDefaultWeeklyHours())
+      }
     }
   }, [open, pharmacy, reset])
 
@@ -111,11 +125,17 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
     try {
       let pharmacyId: string
 
+      // Add weekly hours as JSON string to data
+      const pharmacyData = {
+        ...data,
+        opening_hours: JSON.stringify(weeklyHours),
+      }
+
       if (isEditing) {
-        await updatePharmacy.mutateAsync({ id: pharmacy.id, data })
+        await updatePharmacy.mutateAsync({ id: pharmacy.id, data: pharmacyData })
         pharmacyId = pharmacy.id
       } else {
-        const result = await createPharmacy.mutateAsync(data)
+        const result = await createPharmacy.mutateAsync(pharmacyData)
         pharmacyId = result.id
       }
 
@@ -128,6 +148,7 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
       reset()
       setLogoFile(null)
       setLogoPreview(null)
+      setWeeklyHours(getDefaultWeeklyHours())
     } catch (error: any) {
       alert(error.response?.data?.detail || 'Errore durante il salvataggio')
     }
@@ -164,21 +185,31 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="city">Città</Label>
+              <Label htmlFor="city">
+                Città <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="city"
                 placeholder="Milano"
                 {...register('city')}
               />
+              {errors.city && (
+                <p className="text-sm text-destructive">{errors.city.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="postal_code">CAP</Label>
+              <Label htmlFor="postal_code">
+                CAP <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="postal_code"
                 placeholder="20100"
                 {...register('postal_code')}
               />
+              {errors.postal_code && (
+                <p className="text-sm text-destructive">{errors.postal_code.message}</p>
+              )}
             </div>
           </div>
 
@@ -216,17 +247,7 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="opening_hours">Orari di Apertura</Label>
-            <Input
-              id="opening_hours"
-              placeholder="es: 08:30-13:00, 16:00-20:00"
-              {...register('opening_hours')}
-            />
-            <p className="text-xs text-muted-foreground">
-              Formato suggerito: 08:30-13:00, 16:00-20:00
-            </p>
-          </div>
+          <WeeklyHoursInput value={weeklyHours} onChange={setWeeklyHours} />
 
           <div className="space-y-2">
             <Label htmlFor="logo">Logo Farmacia</Label>

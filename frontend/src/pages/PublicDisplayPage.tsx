@@ -120,26 +120,29 @@ export const PublicDisplayPage: React.FC = () => {
     return currentTime.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Parse hours if JSON
-  const getHoursDisplay = () => {
-    if (!config?.pharmacy_hours) return null;
+  // Parse weekly hours from pharmacy data
+  const getTodayHoursDisplay = () => {
+    if (!pharmacy?.opening_hours) return null;
     try {
-      const hours = JSON.parse(config.pharmacy_hours);
-      const today = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][currentTime.getDay()];
-      const todayHours = hours[today];
-      if (todayHours) {
-        // Handle both string format (e.g., "08:30-13, 16-20") and object format
-        if (typeof todayHours === 'string') {
-          return `Orario di oggi: ${todayHours}`;
-        } else if (todayHours.open && todayHours.close) {
-          return `Orario di oggi: ${todayHours.open} - ${todayHours.close}`;
-        }
+      const weeklyHours = JSON.parse(pharmacy.opening_hours);
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const today = dayNames[currentTime.getDay()];
+      const todaySchedule = weeklyHours[today];
+
+      if (!todaySchedule || !todaySchedule.slots || todaySchedule.slots.length === 0) {
+        return 'Oggi: Chiuso';
       }
+
+      // Format all time slots for today
+      const slots = todaySchedule.slots
+        .map((slot: { open: string; close: string }) => `${slot.open}-${slot.close}`)
+        .join(', ');
+
+      return `Oggi: ${slots}`;
     } catch {
-      // Fallback to plain text
-      return config.pharmacy_hours;
+      // If not valid JSON or old format, just display as is
+      return pharmacy.opening_hours ? `Orari: ${pharmacy.opening_hours}` : null;
     }
-    return null;
   };
 
   if (loading) {
@@ -190,11 +193,8 @@ export const PublicDisplayPage: React.FC = () => {
             )}
             <div>
               <h1 className="text-4xl font-bold leading-tight">{pharmacy?.name || config.pharmacy_name}</h1>
-              {pharmacy?.opening_hours && (
-                <p className="text-xl opacity-70 mt-2">Orari: {pharmacy.opening_hours}</p>
-              )}
-              {getHoursDisplay() && (
-                <p className="text-2xl opacity-70 mt-2">{getHoursDisplay()}</p>
+              {getTodayHoursDisplay() && (
+                <p className="text-2xl opacity-70 mt-2">{getTodayHoursDisplay()}</p>
               )}
             </div>
           </div>
@@ -268,7 +268,7 @@ export const PublicDisplayPage: React.FC = () => {
                         {pharmacy.name}
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.postal_code}{pharmacy.city ? ` - ${pharmacy.city}` : ''} ({pharmacy.province})
+                        📍 {pharmacy.address}, {pharmacy.postal_code} {pharmacy.city ? `- ${pharmacy.city}` : ''} ({pharmacy.province})
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
                       <div className="flex flex-col gap-0.5 mt-1 text-sm">
@@ -280,8 +280,10 @@ export const PublicDisplayPage: React.FC = () => {
                               const hasTurnoInText = hours.toLowerCase().includes('turno');
 
                               if (hasTurnoInText) {
-                                // Already contains shift info, return as is
-                                return hours;
+                                // Check if there's already proper separator before "Turno"
+                                // Look for patterns like "...Turno:" without separator
+                                const fixedHours = hours.replace(/([^\s\-])Turno:/gi, '$1 - Turno:');
+                                return fixedHours;
                               } else if (pharmacy.shift_hours) {
                                 // Add shift hours with separator
                                 return `${hours} - Turno: ${pharmacy.shift_hours}`;

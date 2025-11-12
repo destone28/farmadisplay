@@ -48,8 +48,8 @@ export interface Pharmacy {
 export interface PharmacyCreate {
   name: string
   address?: string
-  city?: string
-  postal_code?: string
+  city: string
+  postal_code: string
   phone?: string
   email?: string
   logo_url?: string  // Deprecated
