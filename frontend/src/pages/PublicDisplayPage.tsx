@@ -3,19 +3,22 @@ import { useParams } from 'react-router-dom';
 import { displayConfigService } from '../services/displayConfigService';
 import { DisplayConfig } from '../types/display';
 import { scrapingService, PharmacyShiftInfo } from '../services/scrapingService';
+import { Pharmacy } from '../types';
+import { api } from '../lib/api';
 
 export const PublicDisplayPage: React.FC = () => {
   const { pharmacyId } = useParams<{ pharmacyId: string }>();
   const [config, setConfig] = useState<DisplayConfig | null>(null);
+  const [pharmacy, setPharmacy] = useState<Pharmacy | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [pharmacies, setPharmacies] = useState<PharmacyShiftInfo[]>([]);
   const [scrapingError, setScrapingError] = useState<string | null>(null);
 
-  // Fetch display config
+  // Fetch display config and pharmacy data
   useEffect(() => {
-    const fetchConfig = async () => {
+    const fetchData = async () => {
       if (!pharmacyId) {
         setError('ID farmacia mancante');
         setLoading(false);
@@ -23,21 +26,27 @@ export const PublicDisplayPage: React.FC = () => {
       }
 
       try {
-        const data = await displayConfigService.getConfig(pharmacyId);
-        setConfig(data);
+        // Fetch both config and pharmacy data
+        const [configData, pharmacyData] = await Promise.all([
+          displayConfigService.getConfig(pharmacyId),
+          api.get<Pharmacy>(`/pharmacies/${pharmacyId}`)
+        ]);
+
+        setConfig(configData);
+        setPharmacy(pharmacyData.data);
         setError(null);
       } catch (err: any) {
-        console.error('Error fetching config:', err);
-        setError(err.response?.data?.detail || 'Errore nel caricamento della configurazione');
+        console.error('Error fetching data:', err);
+        setError(err.response?.data?.detail || 'Errore nel caricamento dei dati');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchConfig();
+    fetchData();
 
-    // Refresh config every 30 seconds
-    const refreshInterval = setInterval(fetchConfig, 30000);
+    // Refresh data every 30 seconds
+    const refreshInterval = setInterval(fetchData, 30000);
 
     return () => clearInterval(refreshInterval);
   }, [pharmacyId]);
@@ -170,17 +179,17 @@ export const PublicDisplayPage: React.FC = () => {
         <div className="flex items-start justify-between">
           {/* Logo and Pharmacy Name */}
           <div className="flex items-center flex-1">
-            {config.logo_path && (
+            {pharmacy?.logo_path && (
               <div className="w-24 h-24 flex-shrink-0 mr-6">
                 <img
-                  src={`${import.meta.env.VITE_API_URL}${config.logo_path}`}
+                  src={`${import.meta.env.VITE_API_URL}${pharmacy.logo_path}`}
                   alt="Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
             )}
             <div>
-              <h1 className="text-4xl font-bold leading-tight">{config.pharmacy_name}</h1>
+              <h1 className="text-4xl font-bold leading-tight">{pharmacy?.name || config.pharmacy_name}</h1>
               {getHoursDisplay() && (
                 <p className="text-2xl opacity-70 mt-2">{getHoursDisplay()}</p>
               )}
