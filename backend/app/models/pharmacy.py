@@ -25,7 +25,8 @@ class Pharmacy(Base):
     # Location coordinates - compatible with SQLite and PostgreSQL
     longitude = Column(Float, nullable=True)
     latitude = Column(Float, nullable=True)
-    logo_url = Column(String(500))
+    logo_url = Column(String(500))  # Deprecated - use logo_path instead
+    logo_path = Column(String(500))  # Path to uploaded logo file
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

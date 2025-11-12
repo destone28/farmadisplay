@@ -24,7 +24,8 @@ class PharmacyBase(BaseModel):
     postal_code: Optional[str] = Field(None, max_length=10)
     phone: Optional[str] = Field(None, max_length=20)
     email: Optional[EmailStr] = None
-    logo_url: Optional[str] = Field(None, max_length=500)
+    logo_url: Optional[str] = Field(None, max_length=500)  # Deprecated
+    logo_path: Optional[str] = Field(None, max_length=500)
 
 
 class PharmacyCreate(PharmacyBase):
@@ -43,7 +44,8 @@ class PharmacyUpdate(BaseModel):
     phone: Optional[str] = Field(None, max_length=20)
     email: Optional[EmailStr] = None
     location: Optional[LocationData] = None
-    logo_url: Optional[str] = Field(None, max_length=500)
+    logo_url: Optional[str] = Field(None, max_length=500)  # Deprecated
+    logo_path: Optional[str] = Field(None, max_length=500)
     is_active: Optional[bool] = None
 
 

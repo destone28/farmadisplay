@@ -2,7 +2,10 @@
 
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import os
+import uuid
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -210,3 +213,63 @@ async def delete_pharmacy(
     db.commit()
 
     return None
+
+
+def delete_file_if_exists(file_path: str | None):
+    """Delete file from filesystem if it exists."""
+    if file_path and file_path.startswith("/uploads/"):
+        try:
+            # Remove leading slash and construct full path
+            rel_path = file_path[1:]  # Remove leading /
+            full_path = Path(rel_path)
+            if full_path.exists():
+                full_path.unlink()
+        except Exception as e:
+            print(f"Warning: Could not delete file {file_path}: {e}")
+
+
+@router.post("/{pharmacy_id}/upload-logo")
+def upload_pharmacy_logo(
+    pharmacy_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload logo for pharmacy."""
+
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
+    # Verify ownership
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
+    if not pharmacy:
+        raise HTTPException(status_code=404, detail="Pharmacy not found")
+
+    if pharmacy.user_id != current_user.id and current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    # Delete old logo if exists
+    delete_file_if_exists(pharmacy.logo_path)
+
+    # Save file
+    file_extension = os.path.splitext(file.filename)[1]
+    if file_extension.lower() not in ['.jpg', '.jpeg', '.png']:
+        raise HTTPException(status_code=400, detail="Only JPG and PNG files are allowed")
+
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    upload_dir = Path("uploads/pharmacy_logos")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    file_path = upload_dir / unique_filename
+    with open(file_path, "wb") as buffer:
+        buffer.write(file.file.read())
+
+    # Update pharmacy logo_path
+    pharmacy.logo_path = f"/uploads/pharmacy_logos/{unique_filename}"
+    db.commit()
+    db.refresh(pharmacy)
+
+    return {"logo_path": pharmacy.logo_path}

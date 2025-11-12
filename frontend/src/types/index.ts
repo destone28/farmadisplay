@@ -33,7 +33,8 @@ export interface Pharmacy {
   postal_code?: string
   phone?: string
   email?: string
-  logo_url?: string
+  logo_url?: string  // Deprecated
+  logo_path?: string
   location?: {
     latitude: number
     longitude: number
@@ -50,7 +51,8 @@ export interface PharmacyCreate {
   postal_code?: string
   phone?: string
   email?: string
-  logo_url?: string
+  logo_url?: string  // Deprecated
+  logo_path?: string
   location?: {
     latitude: number
     longitude: number
