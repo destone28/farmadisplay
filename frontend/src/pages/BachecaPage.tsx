@@ -59,14 +59,22 @@ export const BachecaPage: React.FC = () => {
         // Auto-select first pharmacy
         if (response.data.items.length > 0) {
           setSelectedPharmacyId(response.data.items[0].id);
+        } else {
+          // No pharmacies found, stop loading
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error fetching pharmacies:', error);
+        // Stop loading even on error
+        setLoading(false);
       }
     };
 
     if (user) {
       fetchPharmacies();
+    } else {
+      // No user, stop loading
+      setLoading(false);
     }
   }, [user]);
 
