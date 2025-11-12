@@ -18,7 +18,6 @@ export const BachecaPage: React.FC = () => {
   const [liveFormData, setLiveFormData] = useState<DisplayConfigUpdate>({});
   const [liveHours, setLiveHours] = useState<PharmacyHours>({});
   const [liveFooterBgColor, setLiveFooterBgColor] = useState<string>('#00A3E0');
-  const [liveLogoPreview, setLiveLogoPreview] = useState<string | null>(null);
   const [liveImagePreview, setLiveImagePreview] = useState<string | null>(null);
 
   // Get selected pharmacy
@@ -32,7 +31,7 @@ export const BachecaPage: React.FC = () => {
 
     return {
       ...config,
-      pharmacy_name: liveFormData.pharmacy_name ?? config.pharmacy_name,
+      pharmacy_name: selectedPharmacy?.name ?? config.pharmacy_name,  // Use pharmacy name
       subtitle_text: liveFormData.subtitle_text ?? config.subtitle_text,
       footer_text: liveFormData.footer_text ?? config.footer_text,
       theme: liveFormData.theme ?? config.theme,
@@ -40,13 +39,13 @@ export const BachecaPage: React.FC = () => {
       secondary_color: liveFooterBgColor ?? config.secondary_color,
       display_mode: liveFormData.display_mode ?? config.display_mode,
       pharmacy_hours: Object.keys(liveHours).length > 0 ? JSON.stringify(liveHours) : config.pharmacy_hours,
-      logo_path: liveLogoPreview ?? config.logo_path,
+      logo_path: selectedPharmacy?.logo_path ?? config.logo_path,  // Use pharmacy logo
       image_path: liveImagePreview ?? config.image_path,
       scraping_cap: liveFormData.scraping_cap ?? config.scraping_cap,
       scraping_city: liveFormData.scraping_city ?? config.scraping_city,
       scraping_province: liveFormData.scraping_province ?? config.scraping_province,
     };
-  }, [config, liveFormData, liveHours, liveFooterBgColor, liveLogoPreview, liveImagePreview]);
+  }, [config, liveFormData, liveHours, liveFooterBgColor, liveImagePreview, selectedPharmacy]);
 
   // Fetch user's pharmacies
   useEffect(() => {
@@ -83,7 +82,6 @@ export const BachecaPage: React.FC = () => {
       setLiveFormData({});
       setLiveHours({});
       setLiveFooterBgColor(data.secondary_color);
-      setLiveLogoPreview(null);
       setLiveImagePreview(null);
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -92,7 +90,6 @@ export const BachecaPage: React.FC = () => {
         setLiveFormData({});
         setLiveHours({});
         setLiveFooterBgColor('#00A3E0');
-        setLiveLogoPreview(null);
         setLiveImagePreview(null);
       } else {
         console.error('Error loading config:', error);
@@ -184,7 +181,6 @@ export const BachecaPage: React.FC = () => {
             onLiveHoursChange={setLiveHours}
             liveFooterBgColor={liveFooterBgColor}
             onLiveFooterBgColorChange={setLiveFooterBgColor}
-            onLiveLogoPreview={setLiveLogoPreview}
             onLiveImagePreview={setLiveImagePreview}
           />
         </div>

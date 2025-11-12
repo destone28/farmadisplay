@@ -23,7 +23,6 @@ interface Props {
   onLiveHoursChange: (hours: PharmacyHours) => void;
   liveFooterBgColor: string;
   onLiveFooterBgColorChange: (color: string) => void;
-  onLiveLogoPreview: (url: string | null) => void;
   onLiveImagePreview: (url: string | null) => void;
 }
 
@@ -81,12 +80,10 @@ export const ConfigurationForm: React.FC<Props> = ({
   onLiveFormDataChange,
   onLiveHoursChange,
   onLiveFooterBgColorChange,
-  onLiveLogoPreview,
   onLiveImagePreview
 }) => {
   // Local state for form data (merged with config defaults)
   const [formData, setFormData] = useState<DisplayConfigUpdate>({
-    pharmacy_name: config?.pharmacy_name || '',
     subtitle_text: config?.subtitle_text || 'Farmacie di turno',
     display_mode: config?.display_mode || DisplayMode.IMAGE,
     footer_text: config?.footer_text || '',
@@ -97,11 +94,9 @@ export const ConfigurationForm: React.FC<Props> = ({
   });
 
   const [hours, setHours] = useState<PharmacyHours>({});
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [cropModalFile, setCropModalFile] = useState<File | null>(null);
-  const [cropModalType, setCropModalType] = useState<'logo' | 'image' | null>(null);
   const [footerBgColor, setFooterBgColor] = useState<string>(config?.secondary_color || '#00A3E0');
 
   // Parse hours from config
@@ -121,7 +116,6 @@ export const ConfigurationForm: React.FC<Props> = ({
   useEffect(() => {
     if (config) {
       const newFormData = {
-        pharmacy_name: config.pharmacy_name,
         subtitle_text: config.subtitle_text,
         display_mode: config.display_mode,
         footer_text: config.footer_text || '',
@@ -207,7 +201,7 @@ export const ConfigurationForm: React.FC<Props> = ({
       if (!config) {
         await displayConfigService.createConfig({
           pharmacy_id: pharmacyId,
-          pharmacy_name: formData.pharmacy_name || '',
+          pharmacy_name: pharmacy?.name || '',  // Get from pharmacy data
           subtitle_text: formData.subtitle_text,
           pharmacy_hours: dataToSend.pharmacy_hours,
           display_mode: formData.display_mode,
@@ -218,12 +212,6 @@ export const ConfigurationForm: React.FC<Props> = ({
         });
       } else {
         await displayConfigService.updateConfig(pharmacyId, dataToSend);
-      }
-
-      if (logoFile) {
-        await displayConfigService.uploadLogo(pharmacyId, logoFile);
-        setLogoFile(null);
-        onLiveLogoPreview(null); // Clear preview after upload
       }
 
       if (imageFile) {
@@ -243,7 +231,7 @@ export const ConfigurationForm: React.FC<Props> = ({
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'image') => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -260,7 +248,7 @@ export const ConfigurationForm: React.FC<Props> = ({
         const imageFromPdf = await convertPdfToImage(file);
 
         // Check if converted image needs cropping
-        await checkAndCropImage(imageFromPdf, type);
+        await checkAndCropImage(imageFromPdf);
         alert('PDF convertito in immagine (prima pagina)');
       } catch (error) {
         console.error('PDF conversion error:', error);
@@ -278,11 +266,11 @@ export const ConfigurationForm: React.FC<Props> = ({
     }
 
     // Check if image needs cropping
-    await checkAndCropImage(file, type);
+    await checkAndCropImage(file);
   };
 
   // Helper function to check if image needs cropping
-  const checkAndCropImage = async (file: File, type: 'logo' | 'image'): Promise<void> => {
+  const checkAndCropImage = async (file: File): Promise<void> => {
     return new Promise((resolve) => {
       const img = new Image();
       const reader = new FileReader();
@@ -297,18 +285,11 @@ export const ConfigurationForm: React.FC<Props> = ({
           // If aspect ratio difference > 5%, open crop modal
           if (aspectDiff > 0.05) {
             setCropModalFile(file);
-            setCropModalType(type);
           } else {
             // Image aspect ratio is good, use as is
-            if (type === 'logo') {
-              setLogoFile(file);
-              const previewUrl = URL.createObjectURL(file);
-              onLiveLogoPreview(previewUrl);
-            } else {
-              setImageFile(file);
-              const previewUrl = URL.createObjectURL(file);
-              onLiveImagePreview(previewUrl);
-            }
+            setImageFile(file);
+            const previewUrl = URL.createObjectURL(file);
+            onLiveImagePreview(previewUrl);
           }
           resolve();
         };
@@ -331,24 +312,15 @@ export const ConfigurationForm: React.FC<Props> = ({
   };
 
   const handleCropSave = (croppedFile: File) => {
-    if (cropModalType === 'logo') {
-      setLogoFile(croppedFile);
-      // Create preview URL for logo
-      const previewUrl = URL.createObjectURL(croppedFile);
-      onLiveLogoPreview(previewUrl);
-    } else if (cropModalType === 'image') {
-      setImageFile(croppedFile);
-      // Create preview URL for image
-      const previewUrl = URL.createObjectURL(croppedFile);
-      onLiveImagePreview(previewUrl);
-    }
+    setImageFile(croppedFile);
+    // Create preview URL for image
+    const previewUrl = URL.createObjectURL(croppedFile);
+    onLiveImagePreview(previewUrl);
     setCropModalFile(null);
-    setCropModalType(null);
   };
 
   const handleCropCancel = () => {
     setCropModalFile(null);
-    setCropModalType(null);
   };
 
   // Helper to update form data and trigger live preview
@@ -436,7 +408,7 @@ export const ConfigurationForm: React.FC<Props> = ({
                 <img src={`${import.meta.env.VITE_API_URL}${config.image_path}`} alt="Display" className="max-h-20 object-contain border rounded bg-white p-1" />
               </div>
             )}
-            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileChange(e, 'image')} className="block w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700" />
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e) => handleFileChange(e)} className="block w-full text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700" />
             {imageFile && <p className="text-xs text-green-600 mt-1">Nuovo: {imageFile.name}</p>}
             <p className="text-[10px] text-gray-500 mt-1">PDF: verrà convertito automaticamente (prima pagina)</p>
           </div>
