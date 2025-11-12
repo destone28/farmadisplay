@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { DisplayConfig } from '../../types/display';
 import { scrapingService, PharmacyShiftInfo } from '../../services/scrapingService';
+import { Pharmacy } from '../../types';
 
 interface Props {
   config: DisplayConfig | null;
+  pharmacy?: Pharmacy | null;
   refreshInterval?: number;
   isLivePreview?: boolean;
 }
 
-export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false }) => {
+export const DisplayPreview: React.FC<Props> = ({ config, pharmacy, isLivePreview = false }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [pharmacies, setPharmacies] = useState<PharmacyShiftInfo[]>([]);
   const [loadingPharmacies, setLoadingPharmacies] = useState(false);
@@ -90,26 +92,29 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
     return currentTime.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Parse hours if JSON
-  const getHoursDisplay = () => {
-    if (!config.pharmacy_hours) return null;
+  // Parse weekly hours from pharmacy data
+  const getTodayHoursDisplay = () => {
+    if (!pharmacy?.opening_hours) return null;
     try {
-      const hours = JSON.parse(config.pharmacy_hours);
-      const today = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][currentTime.getDay()];
-      const todayHours = hours[today];
-      if (todayHours) {
-        // Handle both string format (e.g., "08:30-13, 16-20") and object format
-        if (typeof todayHours === 'string') {
-          return `Orario di oggi: ${todayHours}`;
-        } else if (todayHours.open && todayHours.close) {
-          return `Orario di oggi: ${todayHours.open} - ${todayHours.close}`;
-        }
+      const weeklyHours = JSON.parse(pharmacy.opening_hours);
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const today = dayNames[currentTime.getDay()];
+      const todaySchedule = weeklyHours[today];
+
+      if (!todaySchedule || !todaySchedule.slots || todaySchedule.slots.length === 0) {
+        return 'Oggi: Chiuso';
       }
+
+      // Format all time slots for today
+      const slots = todaySchedule.slots
+        .map((slot: { open: string; close: string }) => `${slot.open}-${slot.close}`)
+        .join(', ');
+
+      return `Oggi: ${slots}`;
     } catch {
-      // Fallback to plain text
-      return config.pharmacy_hours;
+      // If not valid JSON or old format, just display as is
+      return pharmacy.opening_hours ? `Orari: ${pharmacy.opening_hours}` : null;
     }
-    return null;
   };
 
   return (
@@ -137,19 +142,19 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
             <div className="flex items-start justify-between mb-1">
               {/* Logo and Pharmacy Name */}
               <div className="flex items-center flex-1 min-w-0">
-                {config.logo_path && (
+                {pharmacy?.logo_path && (
                   <div className="w-8 h-8 flex-shrink-0 mr-1.5">
                     <img
-                      src={config.logo_path.startsWith('blob:') ? config.logo_path : `${import.meta.env.VITE_API_URL}${config.logo_path}`}
+                      src={`${import.meta.env.VITE_API_URL}${pharmacy.logo_path}`}
                       alt="Logo"
                       className="w-full h-full object-contain"
                     />
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-[11px] font-bold leading-tight truncate">{config.pharmacy_name}</h1>
-                  {getHoursDisplay() && (
-                    <p className="text-[9px] opacity-70 mt-0.5 truncate">{getHoursDisplay()}</p>
+                  <h1 className="text-[11px] font-bold leading-tight truncate">{pharmacy?.name || config.pharmacy_name}</h1>
+                  {getTodayHoursDisplay() && (
+                    <p className="text-[9px] opacity-70 mt-0.5 truncate">{getTodayHoursDisplay()}</p>
                   )}
                 </div>
               </div>
@@ -164,7 +169,7 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
 
           {/* Subtitle */}
           <div
-            className="px-2 py-1.5 text-center font-semibold text-[10px]"
+            className="px-2 py-1 text-center font-semibold text-[10px]"
             style={{ backgroundColor: colors.primary, color: '#ffffff' }}
           >
             {config.subtitle_text || 'Farmacie di turno'}
@@ -207,13 +212,13 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
                       <div
                         key={index}
                         className="border rounded p-1 text-[7px]"
-                        style={{ borderColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary }}
+                        style={{ borderColor: pharmacy.status === 'TURNO' ? colors.secondary : colors.primary }}
                       >
                         <div className="font-bold truncate text-[8px]">{pharmacy.name}</div>
                         <div className="flex items-center gap-1 mt-0.5">
                           <span
                             className="px-1 rounded text-[6px] font-bold text-white"
-                            style={{ backgroundColor: pharmacy.status === 'TURNO' ? colors.primary : colors.secondary }}
+                            style={{ backgroundColor: pharmacy.status === 'TURNO' ? colors.secondary : colors.primary }}
                           >
                             {pharmacy.status}
                           </span>
@@ -242,7 +247,7 @@ export const DisplayPreview: React.FC<Props> = ({ config, isLivePreview = false 
           {/* Footer */}
           {config.footer_text && (
             <div
-              className="px-2 py-1.5 text-center text-[9px]"
+              className="px-2 py-1 text-center text-[9px]"
               style={{ backgroundColor: config.secondary_color, color: '#ffffff' }}
             >
               {config.footer_text}

@@ -195,7 +195,7 @@ export const BachecaPage: React.FC = () => {
 
         {/* Right: Preview (1/4) */}
         <div className="w-1/4 flex flex-col gap-3">
-          <DisplayPreview config={previewConfig} isLivePreview={true} />
+          <DisplayPreview config={previewConfig} pharmacy={selectedPharmacy} isLivePreview={true} />
 
           {/* Info notifications - shown based on display mode */}
           {previewConfig?.display_mode === 'scraped' && (

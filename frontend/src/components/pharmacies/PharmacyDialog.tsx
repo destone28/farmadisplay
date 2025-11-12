@@ -150,7 +150,9 @@ export default function PharmacyDialog({ open, onOpenChange, pharmacy }: Pharmac
       setLogoPreview(null)
       setWeeklyHours(getDefaultWeeklyHours())
     } catch (error: any) {
-      alert(error.response?.data?.detail || 'Errore durante il salvataggio')
+      console.error('Error saving pharmacy:', error)
+      const errorMessage = error.response?.data?.detail || error.message || 'Errore durante il salvataggio'
+      alert(errorMessage)
     }
   }
 

@@ -2,7 +2,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Copy } from 'lucide-react'
+import { useState } from 'react'
 
 interface TimeSlot {
   open: string
@@ -51,6 +52,8 @@ export const getDefaultWeeklyHours = (): WeeklyHours => ({
 })
 
 export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputProps) {
+  const [copyMenuOpen, setCopyMenuOpen] = useState<keyof WeeklyHours | null>(null)
+
   const addTimeSlot = (day: keyof WeeklyHours) => {
     const updated = {
       ...value,
@@ -86,10 +89,21 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
     onChange(updated)
   }
 
+  const copyHoursFrom = (targetDay: keyof WeeklyHours, sourceDay: keyof WeeklyHours) => {
+    const updated = {
+      ...value,
+      [targetDay]: {
+        slots: value[sourceDay].slots.map(slot => ({ ...slot })),
+      },
+    }
+    onChange(updated)
+    setCopyMenuOpen(null)
+  }
+
   return (
     <div className="space-y-2">
       <Label>Orari Settimanali</Label>
-      <Accordion type="multiple" defaultValue={Object.keys(dayNames)} className="w-full">
+      <Accordion type="multiple" defaultValue={[]} className="w-full">
         {(Object.keys(dayNames) as Array<keyof WeeklyHours>).map((day) => (
           <AccordionItem key={day} value={day}>
             <AccordionTrigger className="text-sm">
@@ -149,16 +163,51 @@ export default function WeeklyHoursInput({ value, onChange }: WeeklyHoursInputPr
                     </div>
                   ))
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addTimeSlot(day)}
-                  className="w-full"
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Aggiungi Orario
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addTimeSlot(day)}
+                    className="w-full"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Aggiungi Orario
+                  </Button>
+                  <div className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCopyMenuOpen(copyMenuOpen === day ? null : day)}
+                      className="w-full"
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copia da
+                    </Button>
+                    {copyMenuOpen === day && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {(Object.keys(dayNames) as Array<keyof WeeklyHours>)
+                          .filter(d => d !== day)
+                          .map((sourceDay) => (
+                            <button
+                              key={sourceDay}
+                              type="button"
+                              onClick={() => copyHoursFrom(day, sourceDay)}
+                              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors"
+                            >
+                              {dayNames[sourceDay]}
+                              <span className="text-xs text-muted-foreground ml-2">
+                                ({value[sourceDay].slots.length === 0
+                                  ? 'Chiuso'
+                                  : `${value[sourceDay].slots.length} orari`})
+                              </span>
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
