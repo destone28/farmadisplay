@@ -1,0 +1,29 @@
+[Unit]
+Description=FarmaDisplay First Boot Bootstrap Service
+Documentation=https://github.com/yourusername/farmadisplay
+After=bluetooth.target network.target
+Requires=bluetooth.target
+ConditionPathExists=!/home/pi/.turnotec/configured
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/bin/python3 /usr/local/bin/first_boot_setup.py
+Restart=no
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=infinity
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+# Security settings
+PrivateTmp=false
+NoNewPrivileges=false
+
+# Logging
+SyslogIdentifier=farmadisplay-bootstrap
+
+[Install]
+WantedBy=multi-user.target

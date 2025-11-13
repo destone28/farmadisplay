@@ -1,4 +1,4 @@
-# TurnoTec - Device Setup
+# FarmaDisplay - Device Setup
 
 Configurazione e script per Raspberry Pi Zero 2 W con FullPageOS.
 
@@ -6,10 +6,53 @@ Configurazione e script per Raspberry Pi Zero 2 W con FullPageOS.
 
 Scripts e configurazioni per trasformare un Raspberry Pi in una bacheca elettronica intelligente con:
 
-- **Auto-healing network**: Switch automatico Ethernet/WiFi
-- **Bluetooth configuration**: Configurazione WiFi via Bluetooth
-- **Memory monitoring**: Watchdog per evitare crash
-- **FullPageOS**: Chromium in modalità kiosk
+- **🚀 Zero-Touch Bootstrap**: Configurazione automatica al primo avvio via Bluetooth
+- **📱 Smartphone Setup**: Invio configurazione completa da app mobile
+- **📡 Auto-healing network**: Switch automatico Ethernet/WiFi
+- **💾 Memory monitoring**: Watchdog per evitare crash
+- **🖥️ FullPageOS**: Chromium in modalità kiosk fullscreen
+
+## 🆕 Sistema di Bootstrap (Raccomandato)
+
+**Nuovo!** Sistema di configurazione zero-touch per deployment semplificato.
+
+### Vantaggi
+
+✅ **Nessuna configurazione manuale** - Tutto via Bluetooth
+✅ **Setup in 5 minuti** - Dalla SD card al display funzionante
+✅ **WiFi + URL automatici** - Configurati dal JSON ricevuto
+✅ **One-time setup** - Bootstrap si disabilita dopo configurazione
+✅ **Fail-safe** - Backup automatico delle configurazioni
+
+### Quick Start Bootstrap
+
+```bash
+# 1. Flash FullPageOS su SD card
+# 2. Boot nel Raspberry Pi
+# 3. SSH e installa bootstrap
+ssh pi@fullpageos.local
+cd /home/pi
+# Trasferisci i file del progetto, poi:
+cd device
+sudo bash install_bootstrap.sh
+
+# 4. Reboot
+sudo reboot
+
+# 5. Invia configurazione via Bluetooth da smartphone
+# Il dispositivo appare come "FarmaDisplay Setup"
+```
+
+### 📖 Documentazione Completa Bootstrap
+
+👉 **[Leggi la Guida Completa Bootstrap](BOOTSTRAP_GUIDE.md)** 👈
+
+Include:
+- Istruzioni dettagliate passo-passo
+- Struttura JSON di configurazione
+- Invio configurazione da smartphone
+- Troubleshooting completo
+- FAQ e best practices
 
 ## 📦 Hardware Requirements
 
@@ -72,22 +115,31 @@ sudo systemctl start turnotec-watchdog
 
 ## 📁 Files
 
-### Scripts
+### Bootstrap Scripts (Nuovi)
+
+- **first_boot_setup.py**: 🆕 Script principale bootstrap - orchestrazione primo avvio
+- **bt_config_receiver.py**: 🆕 Server Bluetooth per ricezione configurazione completa
+- **configure_fullpageos.py**: 🆕 Applica configurazione WiFi e URL a FullPageOS
+- **install_bootstrap.sh**: 🆕 Installer per sistema bootstrap
+
+### Legacy Scripts
 
 - **network_healing_daemon.py**: Monitora connettività e switch automatico Ethernet/WiFi
-- **bt_wifi_config_server.py**: Server Bluetooth per configurazione WiFi via app mobile
+- **bt_wifi_config_server.py**: Server Bluetooth per configurazione WiFi (solo WiFi, deprecato)
 - **memory_monitor.sh**: Monitora memoria RAM e riavvia Chromium se necessario
 
 ### Systemd Services
 
-- **turnotec-network.service**: Network healing daemon
-- **turnotec-bt-config.service**: Bluetooth configuration server
-- **turnotec-watchdog.service**: Memory watchdog
+- **farmadisplay-bootstrap.service**: 🆕 Servizio bootstrap primo avvio
+- **farmadisplay-network.service**: Network healing daemon (ex turnotec-network)
+- **farmadisplay-bt-config.service**: Legacy Bluetooth WiFi config
+- **farmadisplay-watchdog.service**: Memory watchdog
 
 ### Configuration
 
-- **fullpageos.txt**: Configurazione principale FullPageOS
+- **fullpageos.txt**: Template configurazione FullPageOS
 - **chromium-flags.txt**: Flag Chromium per ottimizzazione
+- **BOOTSTRAP_GUIDE.md**: 🆕 Guida completa sistema bootstrap
 
 ## 🔧 Configuration
 
@@ -114,14 +166,55 @@ Modifica in `memory_monitor.sh`:
 MEMORY_THRESHOLD=85  # Restart se uso RAM > 85%
 ```
 
-## 📱 Bluetooth WiFi Configuration
+## 📱 Configurazione JSON Bootstrap
 
-### Mobile App (TODO)
+### Formato JSON Completo
 
-1. Abilita Bluetooth sul telefono
-2. Cerca dispositivi vicini
-3. Connetti a "TurnoTec WiFi Config"
-4. Invia credenziali WiFi in formato JSON:
+Il JSON inviato via Bluetooth deve avere questa struttura:
+
+```json
+{
+  "pharmacy_name": "Farmacia Centrale",
+  "pharmacy_id": "c470809e-14be-42c0-ac9c-0d2e2914e33f",
+  "display_id": "3ri8zb",
+  "wifi_ssid": "NomeRedeWiFi",
+  "wifi_password": "PasswordWiFi123",
+  "display_url": "https://yourdomain.com/display/3ri8zb",
+  "generated_at": "2025-11-13T14:12:38.620820"
+}
+```
+
+### Campi Obbligatori
+
+| Campo | Descrizione | Validazione |
+|-------|-------------|-------------|
+| `pharmacy_name` | Nome farmacia | 1-200 caratteri |
+| `pharmacy_id` | UUID farmacia | Formato UUID valido |
+| `display_id` | ID pubblico display | 6 caratteri (a-z0-9) |
+| `wifi_ssid` | Nome rete WiFi | Max 32 caratteri |
+| `wifi_password` | Password WiFi | 8-63 caratteri |
+| `display_url` | URL display completo | Deve iniziare con http:// o https:// |
+| `generated_at` | Timestamp generazione | ISO 8601 format |
+
+### Invio Configurazione da Smartphone
+
+#### Android - Serial Bluetooth Terminal
+
+1. Installa **"Serial Bluetooth Terminal"** dal Play Store
+2. Scansiona dispositivi → Connetti a **"FarmaDisplay Setup"**
+3. Incolla il JSON completo
+4. Invia
+5. Riceverai conferma di successo
+
+#### iOS
+
+iOS richiede app specifiche per RFCOMM. Alternative:
+- Usa hotspot WiFi del Raspberry Pi
+- Configurazione via SSH
+
+### Legacy: Solo WiFi Configuration
+
+Per configurare solo WiFi (vecchio metodo):
 
 ```json
 {
@@ -129,6 +222,8 @@ MEMORY_THRESHOLD=85  # Restart se uso RAM > 85%
     "password": "YourWiFiPassword"
 }
 ```
+
+Connetti a "TurnoTec WiFi Config" invece di "FarmaDisplay Setup".
 
 ### Manual Configuration
 
