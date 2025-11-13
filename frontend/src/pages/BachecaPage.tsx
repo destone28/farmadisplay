@@ -139,7 +139,7 @@ export const BachecaPage: React.FC = () => {
       {/* Responsive Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 sm:py-2 border-b bg-white">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0">
-          <h1 className="text-base sm:text-lg font-semibold truncate">Configurazione Bacheca</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">Configurazione Bacheca</h1>
 
           {/* Pharmacy Selector */}
           {pharmacies.length > 1 && (

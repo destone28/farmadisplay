@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Profilo', href: '/profile', icon: UserCircle },
   { name: 'Farmacie', href: '/pharmacies', icon: MapPin },
+  { name: 'Bacheca', href: '/bacheca', icon: Tv },
   // { name: 'Turni', href: '/shifts', icon: Calendar }, // Temporaneamente nascosto
   // { name: 'Dispositivi', href: '/devices', icon: Monitor }, // Rimosso
-  { name: 'Bacheca', href: '/bacheca', icon: Tv },
-  { name: 'Profilo', href: '/profile', icon: UserCircle },
+  { name: 'Dashboard', href: '/', icon: Home, adminOnly: true },
   { name: 'Utenti', href: '/users', icon: Users, adminOnly: true },
 ]
 
