@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Home, MapPin, Calendar, Monitor, LogOut, Menu, X, Tv } from 'lucide-react'
+import { Home, MapPin, Calendar, Monitor, LogOut, Menu, X, Tv, Users } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -10,6 +10,7 @@ const navigation = [
   // { name: 'Turni', href: '/shifts', icon: Calendar }, // Temporaneamente nascosto
   // { name: 'Dispositivi', href: '/devices', icon: Monitor }, // Rimosso
   { name: 'Bacheca', href: '/bacheca', icon: Tv },
+  { name: 'Utenti', href: '/users', icon: Users, adminOnly: true },
 ]
 
 export default function DashboardLayout() {
@@ -45,6 +46,9 @@ export default function DashboardLayout() {
 
         <nav className="flex-1 space-y-1 p-4">
           {navigation.map((item) => {
+            // Skip admin-only items if user is not admin
+            if (item.adminOnly && !isAdmin) return null
+
             const isActive = location.pathname === item.href
             return (
               <Link

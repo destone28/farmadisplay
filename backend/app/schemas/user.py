@@ -15,6 +15,10 @@ class UserBase(BaseModel):
 
     username: str = Field(..., min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    address: Optional[str] = Field(None, max_length=500)
 
 
 class UserCreate(UserBase):
@@ -41,6 +45,10 @@ class UserUpdate(BaseModel):
 
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    address: Optional[str] = Field(None, max_length=500)
     is_active: Optional[bool] = None
     role: Optional[UserRole] = None
 
