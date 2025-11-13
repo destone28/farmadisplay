@@ -2,9 +2,19 @@
 ###############################################################################
 # TurnoTec Device Setup - Installation Script
 # Run this script on a fresh FullPageOS installation
+#
+# Usage:
+#   sudo ./install.sh              # Interactive mode
+#   sudo ./install.sh --auto-confirm  # Auto-confirm mode (no prompts)
 ###############################################################################
 
 set -e
+
+# Parse arguments
+AUTO_CONFIRM=false
+if [ "$1" = "--auto-confirm" ]; then
+    AUTO_CONFIRM=true
+fi
 
 echo "========================================="
 echo "TurnoTec Device Setup - Installation"
@@ -21,10 +31,14 @@ fi
 # Check if running on Raspberry Pi
 if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
     echo "WARNING: This doesn't appear to be a Raspberry Pi"
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
+    if [ "$AUTO_CONFIRM" = false ]; then
+        read -p "Continue anyway? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    else
+        echo "Auto-confirm mode: continuing anyway"
     fi
 fi
 
@@ -146,12 +160,18 @@ echo "5. Complete the configuration form"
 echo ""
 echo "The device will automatically reboot and display the configured page."
 echo ""
-read -p "Reboot now? (Y/n) " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-    echo "Rebooting in 3 seconds..."
-    sleep 3
-    reboot
+
+if [ "$AUTO_CONFIRM" = false ]; then
+    read -p "Reboot now? (Y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        echo "Rebooting in 3 seconds..."
+        sleep 3
+        reboot
+    else
+        echo "Please reboot manually when ready: sudo reboot"
+    fi
 else
-    echo "Please reboot manually when ready: sudo reboot"
+    echo "Auto-confirm mode: skipping reboot prompt"
+    echo "System will reboot on next scheduled reboot"
 fi
