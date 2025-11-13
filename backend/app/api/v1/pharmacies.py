@@ -4,6 +4,7 @@ from typing import List
 from uuid import UUID
 import os
 import uuid
+from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
 from sqlalchemy import or_
@@ -13,7 +14,7 @@ from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.pharmacy import Pharmacy
 from app.models.device import Device, DeviceStatus
-from app.schemas.pharmacy import PharmacyCreate, PharmacyUpdate, PharmacyResponse
+from app.schemas.pharmacy import PharmacyCreate, PharmacyUpdate, PharmacyResponse, PharmacyConfigDownload
 from app.dependencies import CurrentUser, get_current_user, require_admin
 from app.utils.pagination import paginate, PaginatedResponse
 from app.utils.display_id import generate_display_id
@@ -303,3 +304,60 @@ def upload_pharmacy_logo(
     db.refresh(pharmacy)
 
     return {"logo_path": pharmacy.logo_path}
+
+
+@router.post("/{pharmacy_id}/generate-config")
+def generate_pharmacy_config(
+    pharmacy_id: str,
+    config_data: PharmacyConfigDownload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """
+    Generate configuration JSON for Raspberry Pi display.
+
+    Admin only endpoint that generates a JSON configuration file containing:
+    - Pharmacy name and IDs
+    - WiFi SSID and password
+    - Display ID for public access
+
+    RBAC:
+    - Only admins can generate configurations
+    """
+    # Convert pharmacy_id to UUID
+    try:
+        pharmacy_uuid = UUID(pharmacy_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid pharmacy_id format")
+
+    # Get pharmacy
+    pharmacy = db.query(Pharmacy).filter(Pharmacy.id == pharmacy_uuid).first()
+    if not pharmacy:
+        raise HTTPException(status_code=404, detail="Pharmacy not found")
+
+    # Validate pharmacy_id matches the one in the body
+    if pharmacy.id != config_data.pharmacy_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Pharmacy ID mismatch"
+        )
+
+    # Check if pharmacy has wifi_ssid configured
+    if not pharmacy.wifi_ssid:
+        raise HTTPException(
+            status_code=400,
+            detail="WiFi SSID not configured for this pharmacy. Please update pharmacy settings first."
+        )
+
+    # Generate configuration JSON
+    config_json = {
+        "pharmacy_name": pharmacy.name,
+        "pharmacy_id": str(pharmacy.id),
+        "display_id": pharmacy.display_id,
+        "wifi_ssid": pharmacy.wifi_ssid,
+        "wifi_password": config_data.wifi_password,
+        "display_url": f"http://localhost:5173/display/{pharmacy.display_id}",
+        "generated_at": datetime.now().isoformat()
+    }
+
+    return config_json

@@ -77,6 +77,7 @@ export interface Pharmacy {
   logo_url?: string  // Deprecated
   logo_path?: string
   opening_hours?: string
+  wifi_ssid?: string
   location?: {
     latitude: number
     longitude: number

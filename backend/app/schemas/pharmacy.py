@@ -27,6 +27,7 @@ class PharmacyBase(BaseModel):
     logo_url: Optional[str] = Field(None, max_length=500)  # Deprecated
     logo_path: Optional[str] = Field(None, max_length=500)
     opening_hours: Optional[str] = Field(None, max_length=1000)
+    wifi_ssid: Optional[str] = Field(None, max_length=100)
 
 
 class PharmacyCreate(PharmacyBase):
@@ -70,3 +71,10 @@ class PharmacyWithLocation(PharmacyResponse):
     """Schema for pharmacy response with location data."""
 
     location: Optional[LocationData] = None
+
+
+class PharmacyConfigDownload(BaseModel):
+    """Schema for generating pharmacy configuration JSON for Raspberry Pi."""
+
+    pharmacy_id: UUID
+    wifi_password: str = Field(..., min_length=8, max_length=100)

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Home, MapPin, Calendar, Monitor, LogOut, Menu, X, Tv, Users, UserCircle } from 'lucide-react'
+import { Home, MapPin, Calendar, Monitor, LogOut, Menu, X, Tv, Users, UserCircle, Settings } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -12,6 +12,7 @@ const navigation = [
   // { name: 'Dispositivi', href: '/devices', icon: Monitor }, // Rimosso
   { name: 'Dashboard', href: '/', icon: Home, adminOnly: true },
   { name: 'Utenti', href: '/users', icon: Users, adminOnly: true },
+  { name: 'Configurazione', href: '/configuration', icon: Settings, adminOnly: true },
 ]
 
 export default function DashboardLayout() {

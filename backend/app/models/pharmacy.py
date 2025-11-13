@@ -29,6 +29,7 @@ class Pharmacy(Base):
     logo_url = Column(String(500))  # Deprecated - use logo_path instead
     logo_path = Column(String(500))  # Path to uploaded logo file
     opening_hours = Column(String(1000))  # Weekly hours as JSON or simple text
+    wifi_ssid = Column(String(100), nullable=True)  # WiFi SSID for Raspberry Pi configuration
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
