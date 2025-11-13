@@ -51,6 +51,14 @@ export interface UserUpdate {
   role?: 'admin' | 'user'
 }
 
+export interface ProfileUpdate {
+  email?: string
+  phone?: string
+  city?: string
+  postal_code?: string
+  address?: string
+}
+
 export interface Pharmacy {
   id: string
   user_id: string

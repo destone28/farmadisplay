@@ -53,6 +53,16 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
 
 
+class ProfileUpdate(BaseModel):
+    """Schema for user self-updating their profile."""
+
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    address: Optional[str] = Field(None, max_length=500)
+
+
 class UserResponse(UserBase):
     """Schema for user response."""
 

@@ -8,6 +8,7 @@ import LoginPage from '@/pages/LoginPage'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import PharmaciesPage from '@/pages/PharmaciesPage'
 import UsersPage from '@/pages/UsersPage'
+import ProfilePage from '@/pages/ProfilePage'
 // import ShiftsPage from '@/pages/ShiftsPage' // Temporaneamente nascosto
 // import DevicesPage from '@/pages/DevicesPage' // Rimosso
 import DashboardPage from '@/pages/DashboardPage'
@@ -70,6 +71,7 @@ function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="pharmacies" element={<PharmaciesPage />} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="users" element={<UsersPage />} />
             {/* <Route path="shifts" element={<ShiftsPage />} /> */} {/* Temporaneamente nascosto */}
             {/* <Route path="devices" element={<DevicesPage />} /> */} {/* Rimosso */}
