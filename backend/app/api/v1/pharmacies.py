@@ -342,19 +342,12 @@ def generate_pharmacy_config(
             detail="Pharmacy ID mismatch"
         )
 
-    # Check if pharmacy has wifi_ssid configured
-    if not pharmacy.wifi_ssid:
-        raise HTTPException(
-            status_code=400,
-            detail="WiFi SSID not configured for this pharmacy. Please update pharmacy settings first."
-        )
-
-    # Generate configuration JSON
+    # Generate configuration JSON using data from request
     config_json = {
         "pharmacy_name": pharmacy.name,
         "pharmacy_id": str(pharmacy.id),
         "display_id": pharmacy.display_id,
-        "wifi_ssid": pharmacy.wifi_ssid,
+        "wifi_ssid": config_data.wifi_ssid,
         "wifi_password": config_data.wifi_password,
         "display_url": f"http://localhost:5173/display/{pharmacy.display_id}",
         "generated_at": datetime.now().isoformat()

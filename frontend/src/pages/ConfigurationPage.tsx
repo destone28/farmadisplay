@@ -89,6 +89,7 @@ export default function ConfigurationPage() {
         `/pharmacies/${data.pharmacy_id}/generate-config`,
         {
           pharmacy_id: data.pharmacy_id,
+          wifi_ssid: data.wifi_ssid,
           wifi_password: data.wifi_password,
         }
       )

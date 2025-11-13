@@ -77,4 +77,5 @@ class PharmacyConfigDownload(BaseModel):
     """Schema for generating pharmacy configuration JSON for Raspberry Pi."""
 
     pharmacy_id: UUID
+    wifi_ssid: str = Field(..., min_length=1, max_length=100)
     wifi_password: str = Field(..., min_length=8, max_length=100)
