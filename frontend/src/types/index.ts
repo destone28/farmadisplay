@@ -2,9 +2,14 @@ export interface User {
   id: string
   username: string
   email: string | null
+  phone?: string | null
+  city?: string | null
+  postal_code?: string | null
+  address?: string | null
   role: 'admin' | 'user'
   is_active: boolean
   created_at: string
+  updated_at?: string
 }
 
 export interface AuthResponse {
@@ -24,9 +29,45 @@ export interface RegisterRequest {
   role?: 'admin' | 'user'
 }
 
+export interface UserCreate {
+  username: string
+  email?: string
+  phone?: string
+  city?: string
+  postal_code?: string
+  address?: string
+  password: string
+  role?: 'admin' | 'user'
+}
+
+export interface UserUpdate {
+  username?: string
+  email?: string
+  phone?: string
+  city?: string
+  postal_code?: string
+  address?: string
+  is_active?: boolean
+  role?: 'admin' | 'user'
+}
+
+export interface ProfileUpdate {
+  email?: string
+  phone?: string
+  city?: string
+  postal_code?: string
+  address?: string
+}
+
+export interface PasswordChange {
+  current_password: string
+  new_password: string
+}
+
 export interface Pharmacy {
   id: string
   user_id: string
+  display_id: string
   name: string
   address?: string
   city?: string

@@ -12,6 +12,7 @@ interface AuthState {
   login: (credentials: LoginRequest) => Promise<void>
   logout: () => void
   fetchCurrentUser: () => Promise<void>
+  updateUser: (user: User) => void
   clearError: () => void
 }
 
@@ -99,6 +100,10 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
           })
         }
+      },
+
+      updateUser: (user: User) => {
+        set({ user })
       },
 
       clearError: () => set({ error: null }),

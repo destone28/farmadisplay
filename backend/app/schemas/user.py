@@ -15,6 +15,10 @@ class UserBase(BaseModel):
 
     username: str = Field(..., min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    address: Optional[str] = Field(None, max_length=500)
 
 
 class UserCreate(UserBase):
@@ -41,8 +45,56 @@ class UserUpdate(BaseModel):
 
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    address: Optional[str] = Field(None, max_length=500)
     is_active: Optional[bool] = None
     role: Optional[UserRole] = None
+    password: Optional[str] = Field(None, min_length=8, max_length=100)
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        """Validate password strength if provided."""
+        if v is None:
+            return v
+        if not any(c.isupper() for c in v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not any(c.islower() for c in v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain at least one digit')
+        return v
+
+
+class ProfileUpdate(BaseModel):
+    """Schema for user self-updating their profile."""
+
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = Field(None, max_length=20)
+    city: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=10)
+    address: Optional[str] = Field(None, max_length=500)
+
+
+class PasswordChange(BaseModel):
+    """Schema for user changing their password."""
+
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8, max_length=100)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        """Validate new password strength."""
+        if not any(c.isupper() for c in v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not any(c.islower() for c in v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain at least one digit')
+        return v
 
 
 class UserResponse(UserBase):

@@ -16,6 +16,7 @@ class Pharmacy(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    display_id = Column(String(6), unique=True, nullable=False, index=True)  # Public display ID
     name = Column(String(255), nullable=False)
     address = Column(String(500))
     city = Column(String(100))

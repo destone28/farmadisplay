@@ -129,8 +129,8 @@ export const BachecaPage: React.FC = () => {
   }
 
   const openPublicDisplay = () => {
-    if (selectedPharmacyId) {
-      window.open(`/display/${selectedPharmacyId}`, '_blank');
+    if (selectedPharmacy?.display_id) {
+      window.open(`/display/${selectedPharmacy.display_id}`, '_blank');
     }
   };
 
@@ -139,7 +139,7 @@ export const BachecaPage: React.FC = () => {
       {/* Responsive Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 sm:py-2 border-b bg-white">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0">
-          <h1 className="text-base sm:text-lg font-semibold truncate">Configurazione Bacheca</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">Configurazione Bacheca</h1>
 
           {/* Pharmacy Selector */}
           {pharmacies.length > 1 && (
@@ -157,26 +157,36 @@ export const BachecaPage: React.FC = () => {
           )}
         </div>
 
-        <div className="flex gap-2">
-          {/* Mobile Preview Toggle */}
-          <button
-            onClick={() => setShowPreview(!showPreview)}
-            className="flex sm:hidden items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition flex-1"
-          >
-            {showPreview ? 'Nascondi' : 'Anteprima'}
-          </button>
-
-          {/* Open Public Display */}
-          {selectedPharmacyId && (
-            <button
-              onClick={openPublicDisplay}
-              className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded text-xs sm:text-sm hover:bg-green-700 transition flex-1 sm:flex-none"
-            >
-              <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Apri Display</span>
-              <span className="sm:hidden">Display</span>
-            </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          {/* Display ID */}
+          {selectedPharmacy?.display_id && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded text-xs sm:text-sm border border-gray-300">
+              <span className="text-gray-600 font-medium">ID Display:</span>
+              <code className="font-mono font-bold text-blue-600">{selectedPharmacy.display_id}</code>
+            </div>
           )}
+
+          <div className="flex gap-2">
+            {/* Mobile Preview Toggle */}
+            <button
+              onClick={() => setShowPreview(!showPreview)}
+              className="flex sm:hidden items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition flex-1"
+            >
+              {showPreview ? 'Nascondi' : 'Anteprima'}
+            </button>
+
+            {/* Open Public Display */}
+            {selectedPharmacyId && (
+              <button
+                onClick={openPublicDisplay}
+                className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded text-xs sm:text-sm hover:bg-green-700 transition flex-1 sm:flex-none"
+              >
+                <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Apri Display</span>
+                <span className="sm:hidden">Display</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

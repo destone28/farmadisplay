@@ -2,13 +2,14 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, health, pharmacies, shifts, devices, display, display_config, scraping
+from app.api.v1 import auth, health, pharmacies, shifts, devices, display, display_config, scraping, users
 
 api_router = APIRouter()
 
 # Include routers
 api_router.include_router(auth.router)
 api_router.include_router(health.router)
+api_router.include_router(users.router)
 api_router.include_router(pharmacies.router)
 api_router.include_router(shifts.router)
 api_router.include_router(devices.router)

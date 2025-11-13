@@ -121,11 +121,18 @@ class SecurityLogger:
         Args:
             log_file_path: Path to the security log file
         """
-        self.log_file_path = log_file_path
-
-        # Create log directory if it doesn't exist
-        log_dir = Path(log_file_path).parent
-        log_dir.mkdir(parents=True, exist_ok=True)
+        # Try to create log directory, fallback to local logs if permission denied
+        log_path = Path(log_file_path)
+        try:
+            log_dir = log_path.parent
+            log_dir.mkdir(parents=True, exist_ok=True)
+            self.log_file_path = log_file_path
+        except PermissionError:
+            # Fallback to local logs directory
+            fallback_path = Path("logs") / "security.log"
+            fallback_path.parent.mkdir(parents=True, exist_ok=True)
+            self.log_file_path = str(fallback_path)
+            print(f"Warning: Cannot write to {log_file_path}, using {self.log_file_path} instead")
 
         # Configure logger
         self.logger = logging.getLogger("security")
@@ -135,7 +142,7 @@ class SecurityLogger:
         self.logger.handlers.clear()
 
         # File handler with JSON formatter
-        file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
+        file_handler = logging.FileHandler(self.log_file_path, encoding="utf-8")
         file_handler.setLevel(logging.INFO)
 
         # JSON formatter

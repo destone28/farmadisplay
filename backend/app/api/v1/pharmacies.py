@@ -16,6 +16,7 @@ from app.models.device import Device, DeviceStatus
 from app.schemas.pharmacy import PharmacyCreate, PharmacyUpdate, PharmacyResponse
 from app.dependencies import CurrentUser, get_current_user, require_admin
 from app.utils.pagination import paginate, PaginatedResponse
+from app.utils.display_id import generate_display_id
 
 router = APIRouter(prefix="/pharmacies", tags=["pharmacies"])
 
@@ -130,11 +131,15 @@ async def create_pharmacy(
         longitude = pharmacy_in.location.longitude
         latitude = pharmacy_in.location.latitude
 
+    # Generate unique display ID
+    display_id = generate_display_id(db)
+
     # Create pharmacy
     pharmacy_data = pharmacy_in.dict(exclude={"location"})
     pharmacy = Pharmacy(
         **pharmacy_data,
         user_id=current_user.id,
+        display_id=display_id,
         longitude=longitude,
         latitude=latitude
     )
@@ -142,6 +147,31 @@ async def create_pharmacy(
     db.add(pharmacy)
     db.commit()
     db.refresh(pharmacy)
+
+    return pharmacy
+
+
+@router.get("/by-display-id/{display_id}", response_model=PharmacyResponse)
+async def get_pharmacy_by_display_id(
+    display_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get pharmacy details by public display ID.
+
+    This endpoint is public and used by the display page.
+    No authentication required.
+    """
+    pharmacy = db.query(Pharmacy).filter(
+        Pharmacy.display_id == display_id,
+        Pharmacy.is_active == True
+    ).first()
+
+    if not pharmacy:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Display not found"
+        )
 
     return pharmacy
 

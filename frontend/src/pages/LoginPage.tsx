@@ -72,7 +72,7 @@ export default function LoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="admin"
+                placeholder="Inserisci username"
                 disabled={isLoading}
                 {...register('username')}
               />
@@ -110,12 +110,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>
-              Demo: <strong>admin</strong> / <strong>Admin1234</strong>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

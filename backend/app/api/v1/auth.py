@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, ProfileUpdate, PasswordChange
 from app.utils.security import verify_password, get_password_hash, create_access_token
 from app.dependencies import CurrentUser
 from app.config import get_settings
@@ -123,6 +123,95 @@ async def get_current_user_info(current_user: CurrentUser) -> User:
         Current user information
     """
     return current_user
+
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    profile_data: ProfileUpdate,
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    Update current user's profile information.
+
+    Users can only update their own profile and cannot change:
+    - Username
+    - Role
+    - Active status
+
+    Args:
+        profile_data: Profile update data
+        current_user: The authenticated user
+        db: Database session
+
+    Returns:
+        Updated user information
+
+    Raises:
+        HTTPException: If email is already taken by another user
+    """
+    # Check if email is being changed and if it's already taken
+    if profile_data.email and profile_data.email != current_user.email:
+        existing_email = db.query(User).filter(
+            User.email == profile_data.email,
+            User.id != current_user.id
+        ).first()
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+
+    # Update only the provided fields
+    update_data = profile_data.dict(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+
+    return current_user
+
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+    password_data: PasswordChange,
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
+) -> dict[str, str]:
+    """
+    Change current user's password.
+
+    Args:
+        password_data: Current and new password
+        current_user: The authenticated user
+        db: Database session
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException: If current password is incorrect
+    """
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+
+    # Ensure new password is different from current
+    if verify_password(password_data.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+
+    # Update password
+    current_user.password_hash = get_password_hash(password_data.new_password)
+    db.commit()
+
+    return {"message": "Password changed successfully"}
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)

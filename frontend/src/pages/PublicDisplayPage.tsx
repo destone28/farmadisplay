@@ -7,7 +7,7 @@ import { Pharmacy } from '../types';
 import { api } from '../lib/api';
 
 export const PublicDisplayPage: React.FC = () => {
-  const { pharmacyId } = useParams<{ pharmacyId: string }>();
+  const { displayId } = useParams<{ displayId: string }>();
   const [config, setConfig] = useState<DisplayConfig | null>(null);
   const [pharmacy, setPharmacy] = useState<Pharmacy | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,21 +19,20 @@ export const PublicDisplayPage: React.FC = () => {
   // Fetch display config and pharmacy data
   useEffect(() => {
     const fetchData = async () => {
-      if (!pharmacyId) {
-        setError('ID farmacia mancante');
+      if (!displayId) {
+        setError('ID display mancante');
         setLoading(false);
         return;
       }
 
       try {
-        // Fetch both config and pharmacy data
-        const [configData, pharmacyData] = await Promise.all([
-          displayConfigService.getConfig(pharmacyId),
-          api.get<Pharmacy>(`/pharmacies/${pharmacyId}`)
-        ]);
-
-        setConfig(configData);
+        // First, get pharmacy by display_id to get the pharmacy ID
+        const pharmacyData = await api.get<Pharmacy>(`/pharmacies/by-display-id/${displayId}`);
         setPharmacy(pharmacyData.data);
+
+        // Then fetch config using the pharmacy ID
+        const configData = await displayConfigService.getConfig(pharmacyData.data.id);
+        setConfig(configData);
         setError(null);
       } catch (err: any) {
         console.error('Error fetching data:', err);
@@ -49,7 +48,7 @@ export const PublicDisplayPage: React.FC = () => {
     const refreshInterval = setInterval(fetchData, 30000);
 
     return () => clearInterval(refreshInterval);
-  }, [pharmacyId]);
+  }, [displayId]);
 
   // Update time every second
   useEffect(() => {
@@ -165,7 +164,7 @@ export const PublicDisplayPage: React.FC = () => {
           <div className="text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Errore</h1>
           <p className="text-gray-600 mb-4">{error || 'Configurazione non trovata'}</p>
-          <p className="text-sm text-gray-500">ID Farmacia: {pharmacyId}</p>
+          <p className="text-sm text-gray-500">ID Display: {displayId}</p>
         </div>
       </div>
     );
