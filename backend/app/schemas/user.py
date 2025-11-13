@@ -51,6 +51,21 @@ class UserUpdate(BaseModel):
     address: Optional[str] = Field(None, max_length=500)
     is_active: Optional[bool] = None
     role: Optional[UserRole] = None
+    password: Optional[str] = Field(None, min_length=8, max_length=100)
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        """Validate password strength if provided."""
+        if v is None:
+            return v
+        if not any(c.isupper() for c in v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not any(c.islower() for c in v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not any(c.isdigit() for c in v):
+            raise ValueError('Password must contain at least one digit')
+        return v
 
 
 class ProfileUpdate(BaseModel):

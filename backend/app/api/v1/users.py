@@ -182,6 +182,16 @@ async def update_user(
 
     # Update fields
     update_data = user_in.dict(exclude_unset=True)
+
+    # Handle password change if provided
+    if 'password' in update_data and update_data['password']:
+        auth_service = AuthenticationService()
+        password_hash = auth_service.get_password_hash(update_data['password'])
+        setattr(user, 'password_hash', password_hash)
+        # Remove password from update_data as it's already handled
+        del update_data['password']
+
+    # Update remaining fields
     for field, value in update_data.items():
         setattr(user, field, value)
 

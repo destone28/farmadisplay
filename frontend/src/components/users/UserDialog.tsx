@@ -40,6 +40,13 @@ const userUpdateSchema = z.object({
   address: z.string().max(500, 'Indirizzo troppo lungo').optional().or(z.literal('')),
   role: z.enum(['admin', 'user']).optional(),
   is_active: z.union([z.boolean(), z.string()]).optional(),
+  password: z.string()
+    .min(8, 'Password deve essere almeno 8 caratteri')
+    .regex(/[A-Z]/, 'Password deve contenere almeno una maiuscola')
+    .regex(/[a-z]/, 'Password deve contenere almeno una minuscola')
+    .regex(/[0-9]/, 'Password deve contenere almeno un numero')
+    .optional()
+    .or(z.literal('')),
 })
 
 interface UserDialogProps {
@@ -80,6 +87,11 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
       const processedData = { ...data }
       if (isEditing && 'is_active' in processedData) {
         processedData.is_active = processedData.is_active === 'true' || processedData.is_active === true
+      }
+
+      // Remove password field if empty (for update only)
+      if (isEditing && 'password' in processedData && !processedData.password) {
+        delete processedData.password
       }
 
       if (isEditing) {
@@ -145,7 +157,7 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
             )}
           </div>
 
-          {!isEditing && (
+          {!isEditing ? (
             <div className="space-y-2">
               <Label htmlFor="password">
                 Password <span className="text-destructive">*</span>
@@ -161,6 +173,24 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
               )}
               <p className="text-xs text-muted-foreground">
                 Minimo 8 caratteri, almeno una maiuscola, una minuscola e un numero
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="password">
+                Nuova Password <span className="text-xs text-muted-foreground">(opzionale)</span>
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Lascia vuoto per non modificare"
+                {...register('password')}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Compila solo se vuoi cambiare la password. Minimo 8 caratteri, almeno una maiuscola, una minuscola e un numero
               </p>
             </div>
           )}
