@@ -4,12 +4,24 @@ Guida completa per l'installazione e configurazione automatica di Raspberry Pi Z
 
 ---
 
+## ⚡ Quick Start - Preparazione SD Card Diretta (Raccomandato)
+
+**Nuovo!** Se hai accesso diretto alla microSD card e un PC Linux/Mac/Windows con WSL2, puoi preparare la SD card con bootstrap già installato SENZA usare SSH:
+
+👉 **[Vai alla guida SD Card Preparation](SD_CARD_PREPARATION.md)** 👈
+
+Questo metodo è più veloce e ideale per deployment di massa. Prepari la SD card, la inserisci nel Raspberry Pi, e il bootstrap si avvia automaticamente al primo boot.
+
+---
+
 ## 📋 Indice
 
 1. [Panoramica Sistema](#panoramica-sistema)
 2. [Requisiti Hardware](#requisiti-hardware)
 3. [Preparazione SD Card](#preparazione-sd-card)
 4. [Installazione Bootstrap](#installazione-bootstrap)
+   - **Metodo A: Preparazione SD Card Diretta (Raccomandato)** - Vedi [SD_CARD_PREPARATION.md](SD_CARD_PREPARATION.md)
+   - **Metodo B: Installazione via SSH** - Documentato qui sotto
 5. [Configurazione via Bluetooth](#configurazione-via-bluetooth)
 6. [Struttura File e Script](#struttura-file-e-script)
 7. [Flusso Completo](#flusso-completo)

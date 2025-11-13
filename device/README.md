@@ -26,6 +26,27 @@ Scripts e configurazioni per trasformare un Raspberry Pi in una bacheca elettron
 
 ### Quick Start Bootstrap
 
+#### Metodo 1: Preparazione SD Card Diretta (Raccomandato)
+
+Se hai accesso alla microSD card e un PC Linux/Mac/Windows con WSL2:
+
+👉 **[Guida Completa: SD_CARD_PREPARATION.md](SD_CARD_PREPARATION.md)** 👈
+
+```bash
+# 1. Flash FullPageOS su SD card
+# 2. Monta SD card su PC
+# 3. Esegui script di preparazione
+sudo bash prepare_sd_card.sh /mnt/path/to/sd/rootfs
+
+# 4. Espelli SD card e inserisci nel Raspberry Pi
+# 5. Al boot, il dispositivo diventa "FarmaDisplay Setup"
+# 6. Invia configurazione via Bluetooth da smartphone
+```
+
+**Vantaggi**: Zero SSH, deployment rapido, ideale per produzione.
+
+#### Metodo 2: Installazione via SSH
+
 ```bash
 # 1. Flash FullPageOS su SD card
 # 2. Boot nel Raspberry Pi
@@ -120,7 +141,8 @@ sudo systemctl start turnotec-watchdog
 - **first_boot_setup.py**: 🆕 Script principale bootstrap - orchestrazione primo avvio
 - **bt_config_receiver.py**: 🆕 Server Bluetooth per ricezione configurazione completa
 - **configure_fullpageos.py**: 🆕 Applica configurazione WiFi e URL a FullPageOS
-- **install_bootstrap.sh**: 🆕 Installer per sistema bootstrap
+- **install_bootstrap.sh**: 🆕 Installer per sistema bootstrap (via SSH)
+- **prepare_sd_card.sh**: 🆕 Prepara SD card con bootstrap pre-installato (senza SSH)
 
 ### Legacy Scripts
 
@@ -135,11 +157,12 @@ sudo systemctl start turnotec-watchdog
 - **farmadisplay-bt-config.service**: Legacy Bluetooth WiFi config
 - **farmadisplay-watchdog.service**: Memory watchdog
 
-### Configuration
+### Configuration & Documentation
 
 - **fullpageos.txt**: Template configurazione FullPageOS
 - **chromium-flags.txt**: Flag Chromium per ottimizzazione
-- **BOOTSTRAP_GUIDE.md**: 🆕 Guida completa sistema bootstrap
+- **BOOTSTRAP_GUIDE.md**: 🆕 Guida completa sistema bootstrap (installazione via SSH)
+- **SD_CARD_PREPARATION.md**: 🆕 Guida preparazione SD card diretta (raccomandato)
 
 ## 🔧 Configuration
 
