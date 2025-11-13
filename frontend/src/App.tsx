@@ -59,7 +59,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Public route for display - no authentication required */}
-          <Route path="/display/:pharmacyId" element={<PublicDisplayPage />} />
+          <Route path="/display/:displayId" element={<PublicDisplayPage />} />
 
           <Route
             path="/"

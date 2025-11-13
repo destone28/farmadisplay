@@ -67,6 +67,7 @@ export interface PasswordChange {
 export interface Pharmacy {
   id: string
   user_id: string
+  display_id: string
   name: string
   address?: string
   city?: string

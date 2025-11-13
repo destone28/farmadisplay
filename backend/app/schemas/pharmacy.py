@@ -56,6 +56,7 @@ class PharmacyResponse(PharmacyBase):
 
     id: UUID
     user_id: UUID
+    display_id: str
     is_active: bool
     created_at: datetime
     updated_at: Optional[datetime]
