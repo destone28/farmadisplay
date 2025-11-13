@@ -1,11 +1,11 @@
 #!/bin/bash
-# Database Backup Script for FarmaDisplay
+# Database Backup Script for TurnoTec
 
 set -e
 
-BACKUP_DIR="/opt/farmadisplay/backups"
-DB_NAME="farmadisplay"
-DB_USER="farmadisplay"
+BACKUP_DIR="/opt/turnotec/backups"
+DB_NAME="turnotec"
+DB_USER="turnotec"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_${TIMESTAMP}.sql.gz"
 RETENTION_DAYS=30

@@ -1,4 +1,4 @@
-# 🚀 Guida Avvio Locale FarmaDisplay
+# 🚀 Guida Avvio Locale TurnoTec
 
 ## 📋 Stato del Progetto
 
@@ -142,7 +142,7 @@ python3 -m http.server 8080
 
 ## 📁 Struttura Database
 
-### SQLite Database: `backend/farmadisplay.db`
+### SQLite Database: `backend/turnotec.db`
 
 Tabelle create:
 - `users` - Utenti del sistema (admin/user roles)
@@ -238,7 +238,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Verifica database
-ls -lah farmadisplay.db
+ls -lah turnotec.db
 ```
 
 ### Frontend errore dipendenze
@@ -286,7 +286,7 @@ f96a171 fix: resolve Python 3.12 type annotation compatibility issues
 
 ## 🎉 Conclusione
 
-Il progetto FarmaDisplay è **completamente funzionante in locale**!
+Il progetto TurnoTec è **completamente funzionante in locale**!
 
 Tutti i componenti (Backend, Frontend, Display) sono attivi e comunicano correttamente.
 Il database è popolato con dati di test e pronto per ulteriori esperimenti.

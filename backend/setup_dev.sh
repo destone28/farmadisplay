@@ -1,9 +1,9 @@
 #!/bin/bash
-# Development setup script for FarmaDisplay backend
+# Development setup script for TurnoTec backend
 
 set -e
 
-echo "=== FarmaDisplay Backend Setup ==="
+echo "=== TurnoTec Backend Setup ==="
 echo ""
 
 # Check Python version

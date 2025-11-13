@@ -2,7 +2,7 @@
 # Memory Monitor for Raspberry Pi
 # Monitors memory usage and restarts chromium if needed
 
-LOG_FILE="/var/log/farmadisplay-memory.log"
+LOG_FILE="/var/log/turnotec-memory.log"
 MEMORY_THRESHOLD=85  # Restart if memory usage exceeds this percentage
 
 log_message() {

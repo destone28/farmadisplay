@@ -1,12 +1,12 @@
 [Unit]
-Description=FarmaDisplay Bluetooth WiFi Configuration Server
+Description=TurnoTec Bluetooth WiFi Configuration Server
 After=bluetooth.target
 Requires=bluetooth.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/bin/python3 /opt/farmadisplay/scripts/bt_wifi_config_server.py
+ExecStart=/usr/bin/python3 /opt/turnotec/scripts/bt_wifi_config_server.py
 Restart=always
 RestartSec=10
 StandardOutput=journal

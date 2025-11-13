@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bluetooth WiFi Configuration Server for FarmaDisplay
+Bluetooth WiFi Configuration Server for TurnoTec
 Allows configuration of WiFi via Bluetooth from a mobile app
 """
 
@@ -11,8 +11,8 @@ import logging
 
 # Configuration
 SERVICE_UUID = "00001101-0000-1000-8000-00805F9B34FB"
-SERVICE_NAME = "FarmaDisplay WiFi Config"
-LOG_FILE = "/var/log/farmadisplay-bt-config.log"
+SERVICE_NAME = "TurnoTec WiFi Config"
+LOG_FILE = "/var/log/turnotec-bt-config.log"
 
 # Setup logging
 logging.basicConfig(
@@ -64,7 +64,7 @@ def handle_client(client_sock, client_info):
         # Send welcome message
         welcome = json.dumps({
             "status": "ready",
-            "message": "FarmaDisplay WiFi Configuration",
+            "message": "TurnoTec WiFi Configuration",
             "version": "1.0"
         })
         client_sock.send(welcome.encode('utf-8'))

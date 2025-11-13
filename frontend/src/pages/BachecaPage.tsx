@@ -6,6 +6,7 @@ import { displayConfigService } from '../services/displayConfigService';
 import { DisplayConfig, DisplayConfigUpdate, PharmacyHours } from '../types/display';
 import { Pharmacy } from '../types';
 import { api } from '../lib/api';
+import { ExternalLink } from 'lucide-react';
 
 export const BachecaPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -13,6 +14,7 @@ export const BachecaPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<string>('');
+  const [showPreview, setShowPreview] = useState(false);
 
   // Live preview state - these track unsaved changes
   const [liveFormData, setLiveFormData] = useState<DisplayConfigUpdate>({});
@@ -31,7 +33,7 @@ export const BachecaPage: React.FC = () => {
 
     return {
       ...config,
-      pharmacy_name: selectedPharmacy?.name ?? config.pharmacy_name,  // Use pharmacy name
+      pharmacy_name: selectedPharmacy?.name ?? config.pharmacy_name,
       subtitle_text: liveFormData.subtitle_text ?? config.subtitle_text,
       footer_text: liveFormData.footer_text ?? config.footer_text,
       theme: liveFormData.theme ?? config.theme,
@@ -39,7 +41,7 @@ export const BachecaPage: React.FC = () => {
       secondary_color: liveFooterBgColor ?? config.secondary_color,
       display_mode: liveFormData.display_mode ?? config.display_mode,
       pharmacy_hours: Object.keys(liveHours).length > 0 ? JSON.stringify(liveHours) : config.pharmacy_hours,
-      logo_path: selectedPharmacy?.logo_path ?? config.logo_path,  // Use pharmacy logo
+      logo_path: selectedPharmacy?.logo_path ?? config.logo_path,
       image_path: liveImagePreview ?? config.image_path,
       scraping_cap: liveFormData.scraping_cap ?? config.scraping_cap,
       scraping_city: liveFormData.scraping_city ?? config.scraping_city,
@@ -56,16 +58,13 @@ export const BachecaPage: React.FC = () => {
         });
         setPharmacies(response.data.items);
 
-        // Auto-select first pharmacy
         if (response.data.items.length > 0) {
           setSelectedPharmacyId(response.data.items[0].id);
         } else {
-          // No pharmacies found, stop loading
           setLoading(false);
         }
       } catch (error) {
         console.error('Error fetching pharmacies:', error);
-        // Stop loading even on error
         setLoading(false);
       }
     };
@@ -73,7 +72,6 @@ export const BachecaPage: React.FC = () => {
     if (user) {
       fetchPharmacies();
     } else {
-      // No user, stop loading
       setLoading(false);
     }
   }, [user]);
@@ -86,14 +84,12 @@ export const BachecaPage: React.FC = () => {
       const data = await displayConfigService.getConfig(selectedPharmacyId);
       setConfig(data);
 
-      // Reset live state when config is loaded
       setLiveFormData({});
       setLiveHours({});
       setLiveFooterBgColor(data.secondary_color);
       setLiveImagePreview(null);
     } catch (error: any) {
       if (error.response?.status === 404) {
-        // Config doesn't exist yet
         setConfig(null);
         setLiveFormData({});
         setLiveHours({});
@@ -115,18 +111,18 @@ export const BachecaPage: React.FC = () => {
 
   if (loading && pharmacies.length === 0) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">Caricamento...</div>
+      <div className="flex items-center justify-center h-screen px-4">
+        <div className="text-lg sm:text-xl">Caricamento...</div>
       </div>
     );
   }
 
   if (pharmacies.length === 0) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen px-4">
         <div className="text-center">
-          <p className="text-xl text-gray-600">Nessuna farmacia trovata</p>
-          <p className="text-sm text-gray-400 mt-2">Crea prima una farmacia dalla dashboard</p>
+          <p className="text-lg sm:text-xl text-gray-600">Nessuna farmacia trovata</p>
+          <p className="text-xs sm:text-sm text-gray-400 mt-2">Crea prima una farmacia dalla dashboard</p>
         </div>
       </div>
     );
@@ -140,17 +136,17 @@ export const BachecaPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Compact Header in one line */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold">Configurazione Bacheca Display</h1>
+      {/* Responsive Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 sm:py-2 border-b bg-white">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0">
+          <h1 className="text-base sm:text-lg font-semibold truncate">Configurazione Bacheca</h1>
 
           {/* Pharmacy Selector */}
           {pharmacies.length > 1 && (
             <select
               value={selectedPharmacyId}
               onChange={(e) => setSelectedPharmacyId(e.target.value)}
-              className="px-2 py-1 border border-gray-300 rounded text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="w-full sm:w-auto px-2 py-1.5 sm:py-1 border border-gray-300 rounded text-xs sm:text-sm focus:ring-blue-500 focus:border-blue-500"
             >
               {pharmacies.map((pharmacy) => (
                 <option key={pharmacy.id} value={pharmacy.id}>
@@ -161,23 +157,33 @@ export const BachecaPage: React.FC = () => {
           )}
         </div>
 
-        {selectedPharmacyId && (
+        <div className="flex gap-2">
+          {/* Mobile Preview Toggle */}
           <button
-            onClick={openPublicDisplay}
-            className="flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition"
+            onClick={() => setShowPreview(!showPreview)}
+            className="flex sm:hidden items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition flex-1"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            Apri Display Pubblico
+            {showPreview ? 'Nascondi' : 'Anteprima'}
           </button>
-        )}
+
+          {/* Open Public Display */}
+          {selectedPharmacyId && (
+            <button
+              onClick={openPublicDisplay}
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded text-xs sm:text-sm hover:bg-green-700 transition flex-1 sm:flex-none"
+            >
+              <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Apri Display</span>
+              <span className="sm:hidden">Display</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Main Content - 3/4 form, 1/4 preview */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
-        {/* Left: Configuration Form (3/4) */}
-        <div className="w-3/4">
+      {/* Main Content - Responsive Layout */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-4 p-3 sm:p-4 overflow-hidden">
+        {/* Configuration Form - Full width on mobile, 3/4 on desktop */}
+        <div className={`${showPreview ? 'hidden' : 'flex'} lg:flex lg:w-3/4 flex-col overflow-auto`}>
           <ConfigurationForm
             pharmacyId={selectedPharmacyId}
             pharmacy={selectedPharmacy}
@@ -193,28 +199,28 @@ export const BachecaPage: React.FC = () => {
           />
         </div>
 
-        {/* Right: Preview (1/4) */}
-        <div className="w-1/4 flex flex-col gap-3">
+        {/* Preview - Full width on mobile when shown, 1/4 on desktop always shown */}
+        <div className={`${showPreview ? 'flex' : 'hidden'} lg:flex lg:w-1/4 flex-col gap-3 overflow-auto`}>
           <DisplayPreview config={previewConfig} pharmacy={selectedPharmacy} isLivePreview={true} />
 
-          {/* Info notifications - shown based on display mode */}
+          {/* Info notifications */}
           {previewConfig?.display_mode === 'scraped' && (
-            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-              <p className="text-xs text-blue-800 mb-1.5">
+            <div className="bg-blue-50 border border-blue-200 rounded p-2 sm:p-3">
+              <p className="text-[10px] sm:text-xs text-blue-800 mb-1 sm:mb-1.5">
                 📍 Questa modalità mostra automaticamente le farmacie di turno o aperte nella tua zona.
               </p>
-              <p className="text-[10px] text-blue-600">
+              <p className="text-[9px] sm:text-[10px] text-blue-600">
                 I dati vengono aggiornati automaticamente da farmaciediturno.org ogni 30 secondi.
               </p>
             </div>
           )}
 
           {previewConfig?.display_mode === 'image' && (
-            <div className="bg-amber-50 border border-amber-200 rounded p-3">
-              <p className="text-xs text-amber-800 mb-1.5">
+            <div className="bg-amber-50 border border-amber-200 rounded p-2 sm:p-3">
+              <p className="text-[10px] sm:text-xs text-amber-800 mb-1 sm:mb-1.5">
                 📷 Visualizzazione manuale delle farmacie di turno.
               </p>
-              <p className="text-[10px] text-amber-600">
+              <p className="text-[9px] sm:text-[10px] text-amber-600">
                 Le informazioni saranno mostrate attraverso l'immagine o PDF caricato manualmente.
               </p>
             </div>

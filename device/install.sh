@@ -1,9 +1,9 @@
 #!/bin/bash
-# FarmaDisplay Device Installation Script
+# TurnoTec Device Installation Script
 
 set -e
 
-echo "🚀 Installing FarmaDisplay Device Services..."
+echo "🚀 Installing TurnoTec Device Services..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -44,10 +44,10 @@ pip3 install --break-system-packages pybluez requests --no-cache-dir
 
 echo -e "${GREEN}✓ Python packages installed${NC}"
 
-# Create FarmaDisplay directory
+# Create TurnoTec directory
 echo ""
-echo -e "${YELLOW}📁 Creating FarmaDisplay directories...${NC}"
-mkdir -p /home/pi/.farmadisplay
+echo -e "${YELLOW}📁 Creating TurnoTec directories...${NC}"
+mkdir -p /home/pi/.turnotec
 mkdir -p /var/log
 
 echo -e "${GREEN}✓ Directories created${NC}"
@@ -67,9 +67,9 @@ echo -e "${GREEN}✓ Scripts installed${NC}"
 # Copy systemd services
 echo ""
 echo -e "${YELLOW}🔧 Installing systemd services...${NC}"
-cp systemd/farmadisplay-network.service /etc/systemd/system/
-cp systemd/farmadisplay-bt-config.service /etc/systemd/system/
-cp systemd/farmadisplay-watchdog.service /etc/systemd/system/
+cp systemd/turnotec-network.service /etc/systemd/system/
+cp systemd/turnotec-bt-config.service /etc/systemd/system/
+cp systemd/turnotec-watchdog.service /etc/systemd/system/
 
 echo -e "${GREEN}✓ Systemd services installed${NC}"
 
@@ -77,18 +77,18 @@ echo -e "${GREEN}✓ Systemd services installed${NC}"
 echo ""
 echo -e "${YELLOW}⚙️  Enabling services...${NC}"
 systemctl daemon-reload
-systemctl enable farmadisplay-network
-systemctl enable farmadisplay-bt-config
-systemctl enable farmadisplay-watchdog
+systemctl enable turnotec-network
+systemctl enable turnotec-bt-config
+systemctl enable turnotec-watchdog
 
 echo -e "${GREEN}✓ Services enabled${NC}"
 
 # Start services
 echo ""
 echo -e "${YELLOW}▶️  Starting services...${NC}"
-systemctl start farmadisplay-network
-systemctl start farmadisplay-bt-config
-systemctl start farmadisplay-watchdog
+systemctl start turnotec-network
+systemctl start turnotec-bt-config
+systemctl start turnotec-watchdog
 
 echo -e "${GREEN}✓ Services started${NC}"
 
@@ -96,19 +96,19 @@ echo -e "${GREEN}✓ Services started${NC}"
 echo ""
 echo -e "${YELLOW}📊 Service Status:${NC}"
 echo ""
-systemctl status farmadisplay-network --no-pager | head -n 5
+systemctl status turnotec-network --no-pager | head -n 5
 echo ""
-systemctl status farmadisplay-bt-config --no-pager | head -n 5
+systemctl status turnotec-bt-config --no-pager | head -n 5
 echo ""
-systemctl status farmadisplay-watchdog --no-pager | head -n 5
+systemctl status turnotec-watchdog --no-pager | head -n 5
 
 echo ""
 echo -e "${GREEN}✅ Installation complete!${NC}"
 echo ""
 echo -e "${YELLOW}📝 Next steps:${NC}"
-echo "  1. Set device ID: echo 'YOUR_DEVICE_ID' > /home/pi/.farmadisplay/device_id"
+echo "  1. Set device ID: echo 'YOUR_DEVICE_ID' > /home/pi/.turnotec/device_id"
 echo "  2. Configure WiFi via Bluetooth using the mobile app"
-echo "  3. Check logs: tail -f /var/log/farmadisplay-*.log"
-echo "  4. Check service status: sudo systemctl status farmadisplay-*"
+echo "  3. Check logs: tail -f /var/log/turnotec-*.log"
+echo "  4. Check service status: sudo systemctl status turnotec-*"
 echo ""
-echo -e "${GREEN}🎉 FarmaDisplay device is ready!${NC}"
+echo -e "${GREEN}🎉 TurnoTec device is ready!${NC}"

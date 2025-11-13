@@ -1,4 +1,4 @@
-# FarmaDisplay - Display Page
+# TurnoTec - Display Page
 
 Pagina display pubblica ultra-leggera per visualizzare turni farmacie su bacheche elettroniche.
 
@@ -46,7 +46,7 @@ Configura nginx per servire i file statici:
 
 ```nginx
 location /display {
-    alias /var/www/farmadisplay/display;
+    alias /var/www/turnotec/display;
     try_files $uri $uri/ /display/index.html;
 }
 ```

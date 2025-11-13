@@ -1,4 +1,4 @@
-# FarmaDisplay Backend
+# TurnoTec Backend
 
 FastAPI backend per la gestione turni farmacie e API per bacheche elettroniche.
 
@@ -32,8 +32,8 @@ cp .env.example .env
 4. Initialize database:
 ```bash
 # Create database and enable PostGIS
-createdb farmadisplay
-psql farmadisplay -c "CREATE EXTENSION postgis;"
+createdb turnotec
+psql turnotec -c "CREATE EXTENSION postgis;"
 
 # Run migrations
 alembic upgrade head
@@ -128,10 +128,10 @@ Key variables:
 
 ```bash
 # Build image
-docker build -t farmadisplay-backend .
+docker build -t turnotec-backend .
 
 # Run container
-docker run -p 8000:8000 --env-file .env farmadisplay-backend
+docker run -p 8000:8000 --env-file .env turnotec-backend
 ```
 
 ## 📝 License

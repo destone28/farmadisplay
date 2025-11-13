@@ -1,4 +1,4 @@
-# FarmaDisplay - Pre-Production Checklist
+# TurnoTec - Pre-Production Checklist
 
 ## Version: 1.0.0
 ## Date: 2025-11-05
@@ -12,7 +12,7 @@ This comprehensive checklist ensures all systems are ready for production deploy
 ### DNS & Domain
 - [ ] Domain name registered
 - [ ] DNS records configured (A, AAAA, CNAME)
-- [ ] Subdomain configured (api.farmadisplay.com, display.farmadisplay.com)
+- [ ] Subdomain configured (api.turnotec.com, display.turnotec.com)
 - [ ] TTL values appropriate (3600s recommended)
 - [ ] DNS propagation verified (nslookup, dig)
 
@@ -125,7 +125,7 @@ This comprehensive checklist ensures all systems are ready for production deploy
 - [ ] Process restart on failure enabled
 - [ ] Log rotation configured
 - [ ] Service auto-start on boot enabled
-- [ ] Service status verified (`systemctl status farmadisplay-api`)
+- [ ] Service status verified (`systemctl status turnotec-api`)
 
 ---
 
@@ -239,13 +239,13 @@ This comprehensive checklist ensures all systems are ready for production deploy
 - [ ] Auto-reconnect working (tested)
 - [ ] Ethernet/WiFi fallback working
 
-### FarmaDisplay Scripts
+### TurnoTec Scripts
 - [ ] Installation script run (`sudo ./install.sh`)
 - [ ] Network healing daemon running
 - [ ] Bluetooth WiFi config server running
 - [ ] Memory watchdog running
 - [ ] All systemd services enabled
-- [ ] Service logs verified (`tail -f /var/log/farmadisplay-*.log`)
+- [ ] Service logs verified (`tail -f /var/log/turnotec-*.log`)
 
 ### Device Registration
 - [ ] Device ID created in admin panel
@@ -483,7 +483,7 @@ This comprehensive checklist ensures all systems are ready for production deploy
 ### Communication Channels
 - [ ] Status page URL: _________________
 - [ ] Incident Slack/Discord channel
-- [ ] Support email: support@farmadisplay.com
+- [ ] Support email: support@turnotec.com
 - [ ] Emergency phone: _________________
 
 ---

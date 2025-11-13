@@ -15,7 +15,7 @@ from app.api.v1 import api_router
 settings = get_settings()
 
 app = FastAPI(
-    title="FarmaDisplay API",
+    title="TurnoTec API",
     description="""
     API completa per gestione turni farmacie con display elettronici.
 
@@ -104,15 +104,15 @@ app = FastAPI(
 
     ## 📞 Support
 
-    - Email: admin@farmadisplay.com
-    - Docs: https://docs.farmadisplay.com
+    - Email: admin@turnotec.com
+    - Docs: https://docs.turnotec.com
     """,
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     contact={
-        "name": "FarmaDisplay Team",
-        "email": "admin@farmadisplay.com",
+        "name": "TurnoTec Team",
+        "email": "admin@turnotec.com",
     },
     license_info={
         "name": "MIT",
@@ -138,6 +138,13 @@ async def add_request_id(request: Request, call_next):
     request.state.request_id = request_id
     response = await call_next(request)
     response.headers["X-Request-ID"] = request_id
+
+    # Ensure UTF-8 encoding for all responses to handle special characters (è, é, à, ì, ù, ò, etc.)
+    if "content-type" in response.headers:
+        content_type = response.headers["content-type"]
+        if "application/json" in content_type and "charset" not in content_type:
+            response.headers["content-type"] = "application/json; charset=utf-8"
+
     return response
 
 
@@ -229,7 +236,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 async def root():
     """Root endpoint."""
     return {
-        "message": "FarmaDisplay API",
+        "message": "TurnoTec API",
         "version": "1.0.0",
         "docs": "/api/docs",
     }
@@ -238,11 +245,11 @@ async def root():
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
-    print("FarmaDisplay API starting up...")
+    print("TurnoTec API starting up...")
     print(f"Environment: {'Production' if not settings.DEBUG else 'Development'}")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown event."""
-    print("FarmaDisplay API shutting down...")
+    print("TurnoTec API shutting down...")

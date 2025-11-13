@@ -1,4 +1,4 @@
-# FullPageOS Configuration for FarmaDisplay
+# FullPageOS Configuration for TurnoTec
 
 # Display URL
 FULLPAGEOS_URL=https://yourdomain.com/display
@@ -36,7 +36,7 @@ FULLPAGEOS_NETWORK_MANAGER=dhcpcd
 FULLPAGEOS_TIMEZONE=Europe/Rome
 
 # Hostname
-FULLPAGEOS_HOSTNAME=farmadisplay
+FULLPAGEOS_HOSTNAME=turnotec
 
 # Enable hardware acceleration
 FULLPAGEOS_GPU_MEM=256

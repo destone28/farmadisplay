@@ -1,4 +1,4 @@
-// FarmaDisplay - Display Page Application
+// TurnoTec - Display Page Application
 // Ultra-lightweight vanilla JS (<10KB)
 
 // Configuration

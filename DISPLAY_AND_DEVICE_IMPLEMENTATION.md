@@ -1,4 +1,4 @@
-# FarmaDisplay - Display Page & Device Setup Implementation
+# TurnoTec - Display Page & Device Setup Implementation
 
 ## ✅ Implementation Complete (PROMPT 04)
 
@@ -116,17 +116,17 @@ const months = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', '
 
 ### Systemd Services
 
-1. **[device/systemd/farmadisplay-network.service](device/systemd/farmadisplay-network.service)**
+1. **[device/systemd/turnotec-network.service](device/systemd/turnotec-network.service)**
    - Network healing daemon
    - Auto-restart on failure
    - 10-second restart delay
 
-2. **[device/systemd/farmadisplay-bt-config.service](device/systemd/farmadisplay-bt-config.service)**
+2. **[device/systemd/turnotec-bt-config.service](device/systemd/turnotec-bt-config.service)**
    - Bluetooth WiFi config server
    - Starts after bluetooth.target
    - Auto-restart on failure
 
-3. **[device/systemd/farmadisplay-watchdog.service](device/systemd/farmadisplay-watchdog.service)**
+3. **[device/systemd/turnotec-watchdog.service](device/systemd/turnotec-watchdog.service)**
    - Memory watchdog
    - Starts after multi-user.target
    - Auto-restart on failure
@@ -158,7 +158,7 @@ sudo ./install.sh
 Performs:
 1. ✅ Installs system dependencies
 2. ✅ Installs Python packages (pybluez, requests)
-3. ✅ Creates FarmaDisplay directories
+3. ✅ Creates TurnoTec directories
 4. ✅ Copies scripts to /usr/local/bin
 5. ✅ Installs systemd services
 6. ✅ Enables all services
@@ -266,9 +266,9 @@ device/
 │   ├── bt_wifi_config_server.py
 │   └── memory_monitor.sh
 ├── systemd/
-│   ├── farmadisplay-network.service
-│   ├── farmadisplay-bt-config.service
-│   └── farmadisplay-watchdog.service
+│   ├── turnotec-network.service
+│   ├── turnotec-bt-config.service
+│   └── turnotec-watchdog.service
 ├── fullpageos-config/
 │   ├── fullpageos.txt
 │   └── chromium-flags.txt
@@ -291,32 +291,32 @@ wget https://github.com/guysoft/FullPageOS/releases/latest
 ```bash
 # Mount SD card boot partition
 # Edit fullpageos.txt with pharmacy ID
-https://display.farmadisplay.com/?id=YOUR_PHARMACY_ID
+https://display.turnotec.com/?id=YOUR_PHARMACY_ID
 ```
 
 ### 3. First Boot
 ```bash
 # SSH into device
-ssh pi@farmadisplay.local
+ssh pi@turnotec.local
 
 # Clone repository
-git clone https://github.com/destone28/farmadisplay.git
-cd farmadisplay/device
+git clone https://github.com/destone28/turnotec.git
+cd turnotec/device
 
 # Run installer
 sudo ./install.sh
 
 # Set device ID
-echo "YOUR_DEVICE_ID" > /home/pi/.farmadisplay/device_id
+echo "YOUR_DEVICE_ID" > /home/pi/.turnotec/device_id
 ```
 
 ### 4. Verify Installation
 ```bash
 # Check services
-sudo systemctl status farmadisplay-*
+sudo systemctl status turnotec-*
 
 # Check logs
-tail -f /var/log/farmadisplay-*.log
+tail -f /var/log/turnotec-*.log
 
 # Test display
 # Open browser to http://DEVICE_IP:5000

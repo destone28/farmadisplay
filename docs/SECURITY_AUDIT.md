@@ -1,4 +1,4 @@
-# FarmaDisplay - OWASP Top 10 Security Audit
+# TurnoTec - OWASP Top 10 Security Audit
 
 ## Audit Date: 2025-11-05
 ## Version: 1.0.0
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive security audit of the FarmaDisplay application based on the OWASP Top 10 (2021) security risks. Each category has been assessed for vulnerabilities and mitigation strategies.
+This document provides a comprehensive security audit of the TurnoTec application based on the OWASP Top 10 (2021) security risks. Each category has been assessed for vulnerabilities and mitigation strategies.
 
 **Overall Security Posture**: ✅ GOOD
 
@@ -370,7 +370,7 @@ class UserCreate(BaseModel):
 ```json
 // frontend/package-lock.json
 {
-  "name": "farmadisplay-frontend",
+  "name": "turnotec-frontend",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
@@ -572,7 +572,7 @@ docker run -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:5173
 **Infrastructure**:
 ```bash
 # Docker image scanning
-docker scan farmadisplay-backend:latest
+docker scan turnotec-backend:latest
 
 # SSL/TLS testing
 sslscan yourdomain.com
@@ -615,7 +615,7 @@ testssl.sh yourdomain.com
 6. **Post-Incident**: Document findings, update security controls
 
 ### Contact Information
-- Security Team: security@farmadisplay.com
+- Security Team: security@turnotec.com
 - Emergency Contact: +39 XXX XXX XXXX
 
 ---

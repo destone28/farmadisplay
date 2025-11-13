@@ -7,13 +7,13 @@ class Settings(BaseSettings):
     """Application settings."""
     
     # Application
-    APP_NAME: str = "FarmaDisplay API"
+    APP_NAME: str = "TurnoTec API"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
-    
+
     # Database
-    DATABASE_URL: str = "postgresql://user:password@localhost/farmadisplay"
+    DATABASE_URL: str = "postgresql://user:password@localhost/turnotec"
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USERNAME: str | None = None
     SMTP_PASSWORD: str | None = None
-    ADMIN_EMAIL: str = "admin@farmadisplay.com"
+    ADMIN_EMAIL: str = "admin@turnotec.com"
     
     # Sentry (optional)
     SENTRY_DSN: str | None = None

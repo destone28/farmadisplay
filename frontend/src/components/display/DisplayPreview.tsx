@@ -95,6 +95,7 @@ export const DisplayPreview: React.FC<Props> = ({ config, pharmacy, isLivePrevie
   // Parse weekly hours from pharmacy data
   const getTodayHoursDisplay = () => {
     if (!pharmacy?.opening_hours) return null;
+
     try {
       const weeklyHours = JSON.parse(pharmacy.opening_hours);
       const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -111,9 +112,10 @@ export const DisplayPreview: React.FC<Props> = ({ config, pharmacy, isLivePrevie
         .join(', ');
 
       return `Oggi: ${slots}`;
-    } catch {
-      // If not valid JSON or old format, just display as is
-      return pharmacy.opening_hours ? `Orari: ${pharmacy.opening_hours}` : null;
+    } catch (error) {
+      // If not valid JSON, return null to hide the hours instead of showing raw data
+      console.error('Error parsing weekly hours:', error);
+      return null;
     }
   };
 

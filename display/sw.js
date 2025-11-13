@@ -1,7 +1,7 @@
-// FarmaDisplay Service Worker
+// TurnoTec Service Worker
 // Provides offline functionality and caching
 
-const CACHE_NAME = 'farmadisplay-v1';
+const CACHE_NAME = 'turnotec-v1';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',

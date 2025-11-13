@@ -34,7 +34,7 @@ export default function DashboardLayout() {
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
-          <h1 className="text-xl font-bold text-primary">FarmaDisplay</h1>
+          <h1 className="text-xl font-bold text-primary">TurnoTec</h1>
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(false)}

@@ -1,6 +1,6 @@
-# FarmaDisplay Documentation
+# TurnoTec Documentation
 
-Complete documentation for the FarmaDisplay project.
+Complete documentation for the TurnoTec project.
 
 ## 📚 Documentation Structure
 

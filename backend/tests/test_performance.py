@@ -21,7 +21,7 @@ class TestAPIPerformance:
         # Login to get token
         response = client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@farmadisplay.com", "password": "AdminPassword123!"}
+            json={"email": "admin@turnotec.com", "password": "AdminPassword123!"}
         )
         assert response.status_code == 200
         self.token = response.json()["access_token"]
@@ -33,7 +33,7 @@ class TestAPIPerformance:
 
         response = client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@farmadisplay.com", "password": "AdminPassword123!"}
+            json={"email": "admin@turnotec.com", "password": "AdminPassword123!"}
         )
 
         elapsed = (time.time() - start_time) * 1000  # Convert to ms
@@ -377,7 +377,7 @@ class TestLoadPerformance:
         """Setup authentication"""
         response = client.post(
             "/api/v1/auth/login",
-            json={"email": "admin@farmadisplay.com", "password": "AdminPassword123!"}
+            json={"email": "admin@turnotec.com", "password": "AdminPassword123!"}
         )
         self.token = response.json()["access_token"]
         self.headers = {"Authorization": f"Bearer {self.token}"}

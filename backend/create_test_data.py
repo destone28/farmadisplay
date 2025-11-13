@@ -1,4 +1,4 @@
-"""Create test data for FarmaDisplay."""
+"""Create test data for TurnoTec."""
 import requests
 from datetime import date, time
 

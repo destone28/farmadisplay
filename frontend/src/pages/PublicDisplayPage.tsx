@@ -123,6 +123,7 @@ export const PublicDisplayPage: React.FC = () => {
   // Parse weekly hours from pharmacy data
   const getTodayHoursDisplay = () => {
     if (!pharmacy?.opening_hours) return null;
+
     try {
       const weeklyHours = JSON.parse(pharmacy.opening_hours);
       const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -139,9 +140,10 @@ export const PublicDisplayPage: React.FC = () => {
         .join(', ');
 
       return `Oggi: ${slots}`;
-    } catch {
-      // If not valid JSON or old format, just display as is
-      return pharmacy.opening_hours ? `Orari: ${pharmacy.opening_hours}` : null;
+    } catch (error) {
+      // If not valid JSON, return null to hide the hours instead of showing raw data
+      console.error('Error parsing weekly hours:', error);
+      return null;
     }
   };
 
@@ -268,34 +270,57 @@ export const PublicDisplayPage: React.FC = () => {
                         {pharmacy.name}
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
-                        📍 {pharmacy.address}, {pharmacy.postal_code} - {pharmacy.city}{pharmacy.province ? ` (${pharmacy.province})` : ''}
+                        📍 {pharmacy.address}, {(() => {
+                          // Parse postal_code which contains both CAP and city (e.g., "73043COPERTINO")
+                          const postalCodeStr = pharmacy.postal_code || '';
+                          const match = postalCodeStr.match(/^(\d+)(.*)$/);
+                          if (match) {
+                            const cap = match[1];
+                            const cityFromPostal = match[2];
+                            // Use cityFromPostal if city field is empty, otherwise use city field
+                            const cityName = pharmacy.city || cityFromPostal;
+                            return `${cap} - ${cityName}${pharmacy.province ? ` (${pharmacy.province})` : ''}`;
+                          }
+                          // Fallback to original format if parsing fails
+                          return `${postalCodeStr} - ${pharmacy.city}${pharmacy.province ? ` (${pharmacy.province})` : ''}`;
+                        })()}
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
                       <div className="flex flex-col gap-0.5 mt-1 text-sm">
-                        {pharmacy.opening_hours && (
+                        {(pharmacy.opening_hours || pharmacy.shift_hours) && (
                           <div style={{ color: colors.text }}>
-                            🕐 Apertura: {(() => {
-                              const hours = pharmacy.opening_hours;
-                              // Check if "Turno" text is already embedded in opening_hours
-                              const hasTurnoInText = hours.toLowerCase().includes('turno');
-
-                              if (hasTurnoInText) {
-                                // Check if there's already proper separator before "Turno"
-                                // Look for patterns like "...Turno:" without separator
-                                const fixedHours = hours.replace(/([^\s\-])Turno:/gi, '$1 - Turno:');
-                                return fixedHours;
-                              } else if (pharmacy.shift_hours) {
-                                // Add shift hours with separator
-                                return `${hours} - Turno: ${pharmacy.shift_hours}`;
+                            {(() => {
+                              // Check if opening_hours already contains "Turno" text
+                              if (pharmacy.opening_hours && pharmacy.opening_hours.toLowerCase().includes('turno')) {
+                                // Split opening_hours into apertura and turno parts
+                                const turnoMatch = pharmacy.opening_hours.match(/^(.*?)(Turno[*]?:\s*.*?)$/i);
+                                if (turnoMatch) {
+                                  const aperturaText = turnoMatch[1].trim();
+                                  // Remove asterisk from turno text (Turno*: -> Turno:)
+                                  const turnoText = turnoMatch[2].trim().replace(/Turno\*:/i, 'Turno:');
+                                  return (
+                                    <>
+                                      <span>🕐 Apertura: {aperturaText}</span>
+                                      <span> 🔄 {turnoText}</span>
+                                    </>
+                                  );
+                                }
+                                // Fallback if regex doesn't match
+                                return <span>🕐 Apertura: {pharmacy.opening_hours}</span>;
                               } else {
-                                return hours;
+                                // Normal case: separate opening_hours and shift_hours
+                                return (
+                                  <>
+                                    {pharmacy.opening_hours && (
+                                      <span>🕐 Apertura: {pharmacy.opening_hours}</span>
+                                    )}
+                                    {pharmacy.shift_hours && (
+                                      <span>{pharmacy.opening_hours ? ' ' : ''}🔄 Turno: {pharmacy.shift_hours}</span>
+                                    )}
+                                  </>
+                                );
                               }
                             })()}
-                          </div>
-                        )}
-                        {pharmacy.shift_hours && !pharmacy.opening_hours?.toLowerCase().includes('turno') && (
-                          <div style={{ color: colors.text }}>
-                            🔄 Turno: {pharmacy.shift_hours}
                           </div>
                         )}
                         {pharmacy.phone && (

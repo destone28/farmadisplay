@@ -1,4 +1,4 @@
-# FarmaDisplay Frontend
+# TurnoTec Frontend
 
 React + TypeScript dashboard per la gestione turni farmacie e configurazione bacheche elettroniche.
 
@@ -166,10 +166,10 @@ Key variables:
 
 ```bash
 # Build image
-docker build -t farmadisplay-frontend .
+docker build -t turnotec-frontend .
 
 # Run container
-docker run -p 5173:5173 farmadisplay-frontend
+docker run -p 5173:5173 turnotec-frontend
 ```
 
 ## 📝 License

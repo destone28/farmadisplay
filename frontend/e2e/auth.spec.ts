@@ -13,7 +13,7 @@ test.describe('Authentication', () => {
 
   test('should login with valid credentials', async ({ page }) => {
     // Fill login form
-    await page.fill('input[name="email"]', 'admin@farmadisplay.com');
+    await page.fill('input[name="email"]', 'admin@turnotec.com');
     await page.fill('input[name="password"]', 'AdminPassword123!');
 
     // Click login button
@@ -26,7 +26,7 @@ test.describe('Authentication', () => {
     expect(page.url()).toContain('/dashboard');
 
     // Verify user info is displayed
-    await expect(page.locator('text=admin@farmadisplay.com')).toBeVisible();
+    await expect(page.locator('text=admin@turnotec.com')).toBeVisible();
   });
 
   test('should show error with invalid credentials', async ({ page }) => {
@@ -46,7 +46,7 @@ test.describe('Authentication', () => {
 
   test('should logout successfully', async ({ page }) => {
     // Login first
-    await page.fill('input[name="email"]', 'admin@farmadisplay.com');
+    await page.fill('input[name="email"]', 'admin@turnotec.com');
     await page.fill('input[name="password"]', 'AdminPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL('/dashboard');
@@ -74,7 +74,7 @@ test.describe('Authentication', () => {
 
   test('should persist session after page reload', async ({ page }) => {
     // Login
-    await page.fill('input[name="email"]', 'admin@farmadisplay.com');
+    await page.fill('input[name="email"]', 'admin@turnotec.com');
     await page.fill('input[name="password"]', 'AdminPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL('/dashboard');
@@ -84,7 +84,7 @@ test.describe('Authentication', () => {
 
     // Verify still on dashboard (not redirected to login)
     expect(page.url()).toContain('/dashboard');
-    await expect(page.locator('text=admin@farmadisplay.com')).toBeVisible();
+    await expect(page.locator('text=admin@turnotec.com')).toBeVisible();
   });
 
   test('should show validation errors for empty fields', async ({ page }) => {

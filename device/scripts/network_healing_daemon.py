@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Network Healing Daemon for FarmaDisplay
+Network Healing Daemon for TurnoTec
 Monitors network connectivity and automatically switches between Ethernet and WiFi
 """
 
@@ -13,7 +13,7 @@ from datetime import datetime
 CHECK_INTERVAL = 30  # seconds
 PING_HOST = "8.8.8.8"
 PING_TIMEOUT = 5
-LOG_FILE = "/var/log/farmadisplay-network.log"
+LOG_FILE = "/var/log/turnotec-network.log"
 
 # Setup logging
 logging.basicConfig(
@@ -100,7 +100,7 @@ def switch_to_ethernet():
 
 def main():
     """Main daemon loop."""
-    logger.info("FarmaDisplay Network Healing Daemon started")
+    logger.info("TurnoTec Network Healing Daemon started")
     consecutive_failures = 0
     last_interface = None
 

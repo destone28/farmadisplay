@@ -1,14 +1,14 @@
 #!/bin/bash
-# Deploy FarmaDisplay Frontend
+# Deploy TurnoTec Frontend
 
 set -e
 
-PROJECT_DIR="/opt/farmadisplay"
+PROJECT_DIR="/opt/turnotec"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 BUILD_DIR="$FRONTEND_DIR/dist"
-NGINX_ROOT="/var/www/farmadisplay"
+NGINX_ROOT="/var/www/turnotec"
 
-echo "=== Deploying FarmaDisplay Frontend ==="
+echo "=== Deploying TurnoTec Frontend ==="
 
 # Navigate to frontend directory
 cd $FRONTEND_DIR

@@ -114,7 +114,7 @@ class SecurityLogger:
     consistent format and automatic categorization.
     """
 
-    def __init__(self, log_file_path: str = "/var/log/farmadisplay/security.log"):
+    def __init__(self, log_file_path: str = "/var/log/turnotec/security.log"):
         """
         Initialize the security logger.
 
@@ -316,7 +316,7 @@ class SecurityLogger:
 _security_logger: Optional[SecurityLogger] = None
 
 
-def get_security_logger(log_file_path: str = "/var/log/farmadisplay/security.log") -> SecurityLogger:
+def get_security_logger(log_file_path: str = "/var/log/turnotec/security.log") -> SecurityLogger:
     """
     Get or create the global security logger instance.
 

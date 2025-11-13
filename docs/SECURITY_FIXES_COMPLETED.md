@@ -1,4 +1,4 @@
-# FarmaDisplay - Critical Security Fixes Implementation
+# TurnoTec - Critical Security Fixes Implementation
 
 ## Executive Summary
 
@@ -91,7 +91,7 @@ This document details the implementation of 5 critical security fixes identified
 
 ```bash
 # Test headers are present
-curl -I https://api.farmadisplay.com/health
+curl -I https://api.turnotec.com/health
 
 # Expected headers:
 # X-Content-Type-Options: nosniff
@@ -198,7 +198,7 @@ done
 **Logging Features**:
 - ✅ Structured JSON format for easy parsing
 - ✅ File rotation (handled by system logrotate)
-- ✅ Separate security log file: `/var/log/farmadisplay/security.log`
+- ✅ Separate security log file: `/var/log/turnotec/security.log`
 - ✅ Console output for development (WARNING+)
 - ✅ ISO 8601 timestamps
 
@@ -210,11 +210,11 @@ done
   "timestamp": "2025-11-06T10:30:45",
   "event_type": "login_success",
   "level": "INFO",
-  "username": "admin@farmadisplay.com",
+  "username": "admin@turnotec.com",
   "ip_address": "192.168.1.100",
   "user_agent": "Mozilla/5.0...",
   "result": "success",
-  "message": "Authentication successful for user admin@farmadisplay.com"
+  "message": "Authentication successful for user admin@turnotec.com"
 }
 ```
 
@@ -238,9 +238,9 @@ done
   "timestamp": "2025-11-06T10:32:00",
   "event_type": "brute_force_detected",
   "level": "CRITICAL",
-  "username": "admin@farmadisplay.com",
+  "username": "admin@turnotec.com",
   "ip_address": "203.0.113.45",
-  "message": "Brute force attack detected: 5 attempts on admin@farmadisplay.com from 203.0.113.45",
+  "message": "Brute force attack detected: 5 attempts on admin@turnotec.com from 203.0.113.45",
   "details": {"attempts": 5}
 }
 ```
@@ -339,7 +339,7 @@ is_valid = auth_service.verify_password("SecureP@ss123", hashed)
 # Create token
 token = auth_service.create_access_token({
     "sub": "123",
-    "email": "admin@farmadisplay.com",
+    "email": "admin@turnotec.com",
     "role": "admin"
 })
 
@@ -530,8 +530,8 @@ System is ready for production deployment!
 
 4. **Create Log Directory**
    ```bash
-   sudo mkdir -p /var/log/farmadisplay
-   sudo chown www-data:www-data /var/log/farmadisplay
+   sudo mkdir -p /var/log/turnotec
+   sudo chown www-data:www-data /var/log/turnotec
    ```
 
 5. **Run Database Migrations**
@@ -548,13 +548,13 @@ System is ready for production deployment!
 
 ```bash
 # 1. Test security headers
-curl -I https://api.farmadisplay.com/health
+curl -I https://api.turnotec.com/health
 
 # 2. Test account lockout
 # (Make 6 failed login attempts)
 
 # 3. Check security logs
-sudo tail -f /var/log/farmadisplay/security.log
+sudo tail -f /var/log/turnotec/security.log
 
 # 4. Verify Redis connection
 redis-cli KEYS "auth:*"
@@ -574,16 +574,16 @@ redis-cli KEYS "auth:*"
 - SQL injection/XSS attempts
 
 **Tools**:
-- Parse `/var/log/farmadisplay/security.log` with log analysis tools
+- Parse `/var/log/turnotec/security.log` with log analysis tools
 - Set up alerts for CRITICAL level events
 - Monitor Redis keys for `auth:lockout:*` patterns
 
 ### Log Rotation
 
-**Configure logrotate** (`/etc/logrotate.d/farmadisplay`):
+**Configure logrotate** (`/etc/logrotate.d/turnotec`):
 
 ```
-/var/log/farmadisplay/*.log {
+/var/log/turnotec/*.log {
     daily
     rotate 30
     compress
@@ -592,7 +592,7 @@ redis-cli KEYS "auth:*"
     create 0640 www-data www-data
     sharedscripts
     postrotate
-        systemctl reload farmadisplay
+        systemctl reload turnotec
     endscript
 }
 ```
@@ -680,12 +680,12 @@ All 5 critical security fixes have been successfully implemented:
 
 **Ready for Production**: ✅ **YES**
 
-The FarmaDisplay application now meets industry security standards and is ready for production deployment. All critical OWASP Top 10 vulnerabilities have been mitigated.
+The TurnoTec application now meets industry security standards and is ready for production deployment. All critical OWASP Top 10 vulnerabilities have been mitigated.
 
 ### Support
 
 For questions or issues related to these security fixes:
-- Email: security@farmadisplay.com
+- Email: security@turnotec.com
 - Documentation: See [SECURITY_AUDIT.md](SECURITY_AUDIT.md)
 - Verification: Run `python3 scripts/verify_security_fixes.py`
 

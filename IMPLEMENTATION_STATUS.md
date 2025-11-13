@@ -1,4 +1,4 @@
-# FarmaDisplay Implementation Status
+# TurnoTec Implementation Status
 
 ## ✅ COMPLETED: Backend Foundation (PROMPT 01)
 
@@ -293,9 +293,9 @@ open http://localhost:5173
   - Auto-clear cache
 
 ### Systemd Services
-- ✅ **farmadisplay-network.service** - Network healing
-- ✅ **farmadisplay-bt-config.service** - Bluetooth server
-- ✅ **farmadisplay-watchdog.service** - Memory monitor
+- ✅ **turnotec-network.service** - Network healing
+- ✅ **turnotec-bt-config.service** - Bluetooth server
+- ✅ **turnotec-watchdog.service** - Memory monitor
 - All services: auto-restart, logging, enable on boot
 
 ### FullPageOS Configuration

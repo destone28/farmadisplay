@@ -1,4 +1,4 @@
-# FarmaDisplay Frontend Implementation Summary
+# TurnoTec Frontend Implementation Summary
 
 ## ✅ Implementation Complete
 

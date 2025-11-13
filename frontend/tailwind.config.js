@@ -8,10 +8,22 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
         "2xl": "1400px",
       },
+    },
+    screens: {
+      'xs': '475px',    // Extra small devices (large phones)
+      'sm': '640px',    // Small devices (tablets)
+      'md': '768px',    // Medium devices (tablets landscape)
+      'lg': '1024px',   // Large devices (laptops/desktops)
+      'xl': '1280px',   // Extra large devices
+      '2xl': '1536px',  // 2X large devices
     },
     extend: {
       colors: {
@@ -53,6 +65,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
       },
       keyframes: {
         "accordion-down": {

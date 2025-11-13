@@ -1,4 +1,4 @@
-# FarmaDisplay - Device Setup
+# TurnoTec - Device Setup
 
 Configurazione e script per Raspberry Pi Zero 2 W con FullPageOS.
 
@@ -38,7 +38,7 @@ Scripts e configurazioni per trasformare un Raspberry Pi in una bacheca elettron
 
 ```bash
 # SSH into the Pi (default password: raspberry)
-ssh pi@farmadisplay.local
+ssh pi@turnotec.local
 
 # Copy configuration files
 sudo cp fullpageos-config/fullpageos.txt /boot/
@@ -48,26 +48,26 @@ sudo cp fullpageos-config/chromium-flags.txt /boot/
 sudo reboot
 ```
 
-### 4. Install FarmaDisplay Scripts
+### 4. Install TurnoTec Scripts
 
 ```bash
 # Create directory
-sudo mkdir -p /opt/farmadisplay/scripts
+sudo mkdir -p /opt/turnotec/scripts
 
 # Copy scripts
-sudo cp scripts/*.py /opt/farmadisplay/scripts/
-sudo cp scripts/*.sh /opt/farmadisplay/scripts/
-sudo chmod +x /opt/farmadisplay/scripts/*
+sudo cp scripts/*.py /opt/turnotec/scripts/
+sudo cp scripts/*.sh /opt/turnotec/scripts/
+sudo chmod +x /opt/turnotec/scripts/*
 
 # Install systemd services
 sudo cp systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable farmadisplay-network
-sudo systemctl enable farmadisplay-bt-config
-sudo systemctl enable farmadisplay-watchdog
-sudo systemctl start farmadisplay-network
-sudo systemctl start farmadisplay-bt-config
-sudo systemctl start farmadisplay-watchdog
+sudo systemctl enable turnotec-network
+sudo systemctl enable turnotec-bt-config
+sudo systemctl enable turnotec-watchdog
+sudo systemctl start turnotec-network
+sudo systemctl start turnotec-bt-config
+sudo systemctl start turnotec-watchdog
 ```
 
 ## 📁 Files
@@ -80,9 +80,9 @@ sudo systemctl start farmadisplay-watchdog
 
 ### Systemd Services
 
-- **farmadisplay-network.service**: Network healing daemon
-- **farmadisplay-bt-config.service**: Bluetooth configuration server
-- **farmadisplay-watchdog.service**: Memory watchdog
+- **turnotec-network.service**: Network healing daemon
+- **turnotec-bt-config.service**: Bluetooth configuration server
+- **turnotec-watchdog.service**: Memory watchdog
 
 ### Configuration
 
@@ -120,7 +120,7 @@ MEMORY_THRESHOLD=85  # Restart se uso RAM > 85%
 
 1. Abilita Bluetooth sul telefono
 2. Cerca dispositivi vicini
-3. Connetti a "FarmaDisplay WiFi Config"
+3. Connetti a "TurnoTec WiFi Config"
 4. Invia credenziali WiFi in formato JSON:
 
 ```json
@@ -152,29 +152,29 @@ sudo wpa_cli -i wlan0 reconfigure
 
 ```bash
 # Network healing
-sudo systemctl status farmadisplay-network
+sudo systemctl status turnotec-network
 
 # Bluetooth config
-sudo systemctl status farmadisplay-bt-config
+sudo systemctl status turnotec-bt-config
 
 # Memory watchdog
-sudo systemctl status farmadisplay-watchdog
+sudo systemctl status turnotec-watchdog
 ```
 
 ### View Logs
 
 ```bash
 # Network logs
-sudo tail -f /var/log/farmadisplay-network.log
+sudo tail -f /var/log/turnotec-network.log
 
 # Bluetooth logs
-sudo tail -f /var/log/farmadisplay-bt-config.log
+sudo tail -f /var/log/turnotec-bt-config.log
 
 # Memory logs
-sudo tail -f /var/log/farmadisplay-memory.log
+sudo tail -f /var/log/turnotec-memory.log
 
 # System journal
-sudo journalctl -u farmadisplay-network -f
+sudo journalctl -u turnotec-network -f
 ```
 
 ## 🐛 Troubleshooting
@@ -188,19 +188,19 @@ sudo journalctl -u farmadisplay-network -f
 ### No network connection
 
 1. Check network status: `ip addr show`
-2. Check network daemon: `sudo systemctl status farmadisplay-network`
+2. Check network daemon: `sudo systemctl status turnotec-network`
 3. Manual network restart: `sudo systemctl restart dhcpcd`
 
 ### High memory usage
 
 1. Check memory: `free -m`
-2. Check watchdog: `sudo systemctl status farmadisplay-watchdog`
+2. Check watchdog: `sudo systemctl status turnotec-watchdog`
 3. Manually restart Chromium: `sudo pkill chromium`
 
 ### SSH not working
 
 1. Enable SSH: Create empty file `ssh` in boot partition
-2. Check Pi is on network: `ping farmadisplay.local`
+2. Check Pi is on network: `ping turnotec.local`
 3. Use IP directly: `ssh pi@192.168.1.xxx`
 
 ## 🔐 Security

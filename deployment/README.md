@@ -1,4 +1,4 @@
-# FarmaDisplay - Deployment
+# TurnoTec - Deployment
 
 Scripts e configurazioni per il deployment su server di produzione (Hetzner VPS).
 
@@ -56,8 +56,8 @@ apt update && apt upgrade -y
 ```bash
 # Clone repository
 cd /opt
-git clone https://github.com/destone28/farmadisplay.git
-cd farmadisplay/deployment
+git clone https://github.com/destone28/turnotec.git
+cd turnotec/deployment
 
 # Make scripts executable
 chmod +x *.sh
@@ -80,21 +80,21 @@ This will install:
 # Change default password
 sudo -u postgres psql
 
-postgres=# ALTER USER farmadisplay WITH PASSWORD 'your-secure-password';
+postgres=# ALTER USER turnotec WITH PASSWORD 'your-secure-password';
 postgres=# \q
 ```
 
 ### 5. Configure Backend
 
 ```bash
-cd /opt/farmadisplay/backend
+cd /opt/turnotec/backend
 
 # Create .env file
 cp .env.example .env
 nano .env
 
 # Update these values:
-# DATABASE_URL=postgresql://farmadisplay:your-password@localhost/farmadisplay
+# DATABASE_URL=postgresql://turnotec:your-password@localhost/turnotec
 # SECRET_KEY=<generate with: openssl rand -hex 32>
 # ALLOWED_ORIGINS=["https://yourdomain.com"]
 ```
@@ -102,7 +102,7 @@ nano .env
 ### 6. Configure Frontend
 
 ```bash
-cd /opt/farmadisplay/frontend
+cd /opt/turnotec/frontend
 
 # Create .env.production
 cp .env.example .env.production
@@ -117,7 +117,7 @@ nano .env.production
 ### Deploy Backend
 
 ```bash
-cd /opt/farmadisplay/deployment
+cd /opt/turnotec/deployment
 ./deploy-backend.sh
 ```
 
@@ -130,7 +130,7 @@ This will:
 ### Deploy Frontend
 
 ```bash
-cd /opt/farmadisplay/deployment
+cd /opt/turnotec/deployment
 ./deploy-frontend.sh
 ```
 
@@ -146,14 +146,14 @@ This will:
 
 ```bash
 # Copy nginx config
-sudo cp nginx/farmadisplay.conf /etc/nginx/sites-available/
+sudo cp nginx/turnotec.conf /etc/nginx/sites-available/
 
 # Update domain name
-sudo nano /etc/nginx/sites-available/farmadisplay.conf
+sudo nano /etc/nginx/sites-available/turnotec.conf
 # Replace 'yourdomain.com' with your actual domain
 
 # Enable site
-sudo ln -s /etc/nginx/sites-available/farmadisplay.conf /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/turnotec.conf /etc/nginx/sites-enabled/
 
 # Test configuration
 sudo nginx -t
@@ -184,29 +184,29 @@ sudo cp systemd/*.service /etc/systemd/system/
 sudo systemctl daemon-reload
 
 # Enable services
-sudo systemctl enable farmadisplay-api
-sudo systemctl enable farmadisplay-celery
+sudo systemctl enable turnotec-api
+sudo systemctl enable turnotec-celery
 
 # Start services
-sudo systemctl start farmadisplay-api
-sudo systemctl start farmadisplay-celery
+sudo systemctl start turnotec-api
+sudo systemctl start turnotec-celery
 
 # Check status
-sudo systemctl status farmadisplay-api
-sudo systemctl status farmadisplay-celery
+sudo systemctl status turnotec-api
+sudo systemctl status turnotec-celery
 ```
 
 ### Service Management
 
 ```bash
 # Restart backend
-sudo systemctl restart farmadisplay-api
+sudo systemctl restart turnotec-api
 
 # View logs
-sudo journalctl -u farmadisplay-api -f
+sudo journalctl -u turnotec-api -f
 
 # Stop service
-sudo systemctl stop farmadisplay-api
+sudo systemctl stop turnotec-api
 ```
 
 ## 💾 Database Backups
@@ -214,11 +214,11 @@ sudo systemctl stop farmadisplay-api
 ### Manual Backup
 
 ```bash
-cd /opt/farmadisplay/deployment
+cd /opt/turnotec/deployment
 ./backup-database.sh
 ```
 
-Backups are stored in `/opt/farmadisplay/backups/`
+Backups are stored in `/opt/turnotec/backups/`
 
 ### Automatic Backups
 
@@ -227,20 +227,20 @@ Backups are stored in `/opt/farmadisplay/backups/`
 crontab -e
 
 # Add this line for daily backup at 2 AM
-0 2 * * * /opt/farmadisplay/deployment/backup-database.sh
+0 2 * * * /opt/turnotec/deployment/backup-database.sh
 
 # Add this line for weekly backup on Sunday at 3 AM
-0 3 * * 0 /opt/farmadisplay/deployment/backup-database.sh
+0 3 * * 0 /opt/turnotec/deployment/backup-database.sh
 ```
 
 ### Restore Backup
 
 ```bash
 # List backups
-ls -lh /opt/farmadisplay/backups/
+ls -lh /opt/turnotec/backups/
 
 # Restore specific backup
-gunzip < /opt/farmadisplay/backups/farmadisplay_20250115_020000.sql.gz | psql -U farmadisplay farmadisplay
+gunzip < /opt/turnotec/backups/turnotec_20250115_020000.sql.gz | psql -U turnotec turnotec
 ```
 
 ## 📊 Monitoring
@@ -249,10 +249,10 @@ gunzip < /opt/farmadisplay/backups/farmadisplay_20250115_020000.sql.gz | psql -U
 
 ```bash
 # Backend API
-sudo systemctl status farmadisplay-api
+sudo systemctl status turnotec-api
 
 # Celery worker
-sudo systemctl status farmadisplay-celery
+sudo systemctl status turnotec-celery
 
 # Nginx
 sudo systemctl status nginx
@@ -268,13 +268,13 @@ sudo systemctl status redis
 
 ```bash
 # Backend logs
-sudo journalctl -u farmadisplay-api -f
+sudo journalctl -u turnotec-api -f
 
 # Nginx access logs
-sudo tail -f /var/log/nginx/farmadisplay_access.log
+sudo tail -f /var/log/nginx/turnotec_access.log
 
 # Nginx error logs
-sudo tail -f /var/log/nginx/farmadisplay_error.log
+sudo tail -f /var/log/nginx/turnotec_error.log
 
 # PostgreSQL logs
 sudo tail -f /var/log/postgresql/postgresql-15-main.log
@@ -337,7 +337,7 @@ sudo nano /etc/postgresql/15/main/postgresql.conf
 ### Update Backend
 
 ```bash
-cd /opt/farmadisplay
+cd /opt/turnotec
 git pull origin main
 cd deployment
 ./deploy-backend.sh
@@ -346,7 +346,7 @@ cd deployment
 ### Update Frontend
 
 ```bash
-cd /opt/farmadisplay
+cd /opt/turnotec
 git pull origin main
 cd deployment
 ./deploy-frontend.sh
@@ -366,13 +366,13 @@ sudo reboot  # If kernel updated
 
 ```bash
 # Check service status
-sudo systemctl status farmadisplay-api
+sudo systemctl status turnotec-api
 
 # Check logs
-sudo journalctl -u farmadisplay-api -n 100
+sudo journalctl -u turnotec-api -n 100
 
 # Restart service
-sudo systemctl restart farmadisplay-api
+sudo systemctl restart turnotec-api
 ```
 
 ### Database connection errors
@@ -382,10 +382,10 @@ sudo systemctl restart farmadisplay-api
 sudo systemctl status postgresql
 
 # Check connection
-psql -U farmadisplay -h localhost -d farmadisplay
+psql -U turnotec -h localhost -d turnotec
 
 # Check credentials in .env
-cat /opt/farmadisplay/backend/.env | grep DATABASE_URL
+cat /opt/turnotec/backend/.env | grep DATABASE_URL
 ```
 
 ### Nginx errors

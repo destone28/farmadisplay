@@ -1,4 +1,4 @@
-# FarmaDisplay - Sistema Bacheca Turni Farmacie
+# TurnoTec - Sistema Bacheca Turni Farmacie
 
 Sistema completo per gestire e visualizzare turni farmaceutici tramite bacheche elettroniche intelligenti basate su Raspberry Pi.
 
@@ -92,5 +92,5 @@ Sviluppato da [Nome Team/Sviluppatore]
 
 ## 📞 Contatti
 
-- Email: admin@farmadisplay.com
-- Repository: https://github.com/destone28/farmadisplay
+- Email: admin@turnotec.com
+- Repository: https://github.com/destone28/turnotec

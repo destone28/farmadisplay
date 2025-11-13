@@ -9,7 +9,7 @@ test.describe('Shift Workflow', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin before each test
     await page.goto('/login');
-    await page.fill('input[name="email"]', 'admin@farmadisplay.com');
+    await page.fill('input[name="email"]', 'admin@turnotec.com');
     await page.fill('input[name="password"]', 'AdminPassword123!');
     await page.click('button[type="submit"]');
     await page.waitForURL('/dashboard');

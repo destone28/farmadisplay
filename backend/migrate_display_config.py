@@ -5,7 +5,7 @@ Run this script once to update existing database.
 import sqlite3
 import sys
 
-def migrate_database(db_path='farmadisplay.db'):
+def migrate_database(db_path='turnotec.db'):
     """Add new columns to display_configs table."""
     try:
         conn = sqlite3.connect(db_path)

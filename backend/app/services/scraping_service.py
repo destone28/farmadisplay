@@ -39,6 +39,7 @@ class ScrapingService:
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
                 "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
                 "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Charset": "utf-8",
                 "Referer": "https://www.farmaciediturno.org/",
                 "Origin": "https://www.farmaciediturno.org",
                 "DNT": "1",
@@ -122,8 +123,13 @@ class ScrapingService:
             response = await self.client.post(self.SEARCH_URL, data=form_data)
             response.raise_for_status()
 
-            # Parse HTML response
-            soup = BeautifulSoup(response.text, 'html.parser')
+            # The site uses ISO-8859-1 (Latin-1) encoding, not UTF-8
+            # We need to decode from Latin-1 and re-encode to UTF-8
+            # This handles special Italian characters (è, é, à, ì, ù, ò, Ò, etc.)
+            html_content = response.content.decode('iso-8859-1')
+
+            # Parse HTML response with UTF-8
+            soup = BeautifulSoup(html_content, 'html.parser')
 
             # Extract pharmacy boxes
             pharmacy_boxes = soup.find_all('div', class_='farmacia-box', itemtype='https://schema.org/Pharmacy')

@@ -1,13 +1,13 @@
 #!/bin/bash
-# Deploy FarmaDisplay Backend
+# Deploy TurnoTec Backend
 
 set -e
 
-PROJECT_DIR="/opt/farmadisplay"
+PROJECT_DIR="/opt/turnotec"
 BACKEND_DIR="$PROJECT_DIR/backend"
 VENV_DIR="$BACKEND_DIR/venv"
 
-echo "=== Deploying FarmaDisplay Backend ==="
+echo "=== Deploying TurnoTec Backend ==="
 
 # Navigate to backend directory
 cd $BACKEND_DIR
@@ -32,10 +32,10 @@ alembic upgrade head
 
 # Restart systemd service
 echo "Restarting backend service..."
-sudo systemctl restart farmadisplay-api
+sudo systemctl restart turnotec-api
 
 # Check service status
-sudo systemctl status farmadisplay-api --no-pager
+sudo systemctl status turnotec-api --no-pager
 
 echo ""
 echo "=== Backend deployment completed! ==="

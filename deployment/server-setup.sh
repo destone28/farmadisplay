@@ -1,10 +1,10 @@
 #!/bin/bash
-# FarmaDisplay Server Setup Script
+# TurnoTec Server Setup Script
 # Sets up Hetzner VPS for production deployment
 
 set -e
 
-echo "=== FarmaDisplay Server Setup ==="
+echo "=== TurnoTec Server Setup ==="
 echo ""
 
 # Update system
@@ -42,10 +42,10 @@ systemctl enable postgresql
 
 # Create database and user
 sudo -u postgres psql <<EOF
-CREATE DATABASE farmadisplay;
-CREATE USER farmadisplay WITH ENCRYPTED PASSWORD 'changeme';
-GRANT ALL PRIVILEGES ON DATABASE farmadisplay TO farmadisplay;
-\c farmadisplay
+CREATE DATABASE turnotec;
+CREATE USER turnotec WITH ENCRYPTED PASSWORD 'changeme';
+GRANT ALL PRIVILEGES ON DATABASE turnotec TO turnotec;
+\c turnotec
 CREATE EXTENSION postgis;
 EOF
 
@@ -63,18 +63,18 @@ ufw --force enable
 
 # Create application directory
 echo "Creating application directory..."
-mkdir -p /opt/farmadisplay
-chown -R $USER:$USER /opt/farmadisplay
+mkdir -p /opt/turnotec
+chown -R $USER:$USER /opt/turnotec
 
 # Create log directory
-mkdir -p /var/log/farmadisplay
-chown -R $USER:$USER /var/log/farmadisplay
+mkdir -p /var/log/turnotec
+chown -R $USER:$USER /var/log/turnotec
 
 echo ""
 echo "=== Server setup completed! ==="
 echo ""
 echo "Next steps:"
-echo "1. Clone repository to /opt/farmadisplay"
+echo "1. Clone repository to /opt/turnotec"
 echo "2. Configure .env files"
 echo "3. Run deploy-backend.sh"
 echo "4. Run deploy-frontend.sh"

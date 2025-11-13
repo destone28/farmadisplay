@@ -1,5 +1,5 @@
 [Unit]
-Description=FarmaDisplay Celery Worker
+Description=TurnoTec Celery Worker
 After=network.target redis.service
 Requires=redis.service
 
@@ -7,17 +7,17 @@ Requires=redis.service
 Type=forking
 User=www-data
 Group=www-data
-WorkingDirectory=/opt/farmadisplay/backend
-Environment="PATH=/opt/farmadisplay/backend/venv/bin"
-ExecStart=/opt/farmadisplay/backend/venv/bin/celery -A app.celery worker --loglevel=info --detach
-ExecStop=/opt/farmadisplay/backend/venv/bin/celery -A app.celery control shutdown
+WorkingDirectory=/opt/turnotec/backend
+Environment="PATH=/opt/turnotec/backend/venv/bin"
+ExecStart=/opt/turnotec/backend/venv/bin/celery -A app.celery worker --loglevel=info --detach
+ExecStop=/opt/turnotec/backend/venv/bin/celery -A app.celery control shutdown
 Restart=always
 RestartSec=10
 
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=farmadisplay-celery
+SyslogIdentifier=turnotec-celery
 
 [Install]
 WantedBy=multi-user.target

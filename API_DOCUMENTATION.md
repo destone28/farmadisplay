@@ -1,6 +1,6 @@
-# FarmaDisplay API Documentation
+# TurnoTec API Documentation
 
-Complete API reference for FarmaDisplay backend.
+Complete API reference for TurnoTec backend.
 
 ## 🔐 Authentication
 
@@ -517,6 +517,6 @@ open htmlcov/index.html
 
 ## 📞 Support
 
-- Email: admin@farmadisplay.com
-- GitHub: https://github.com/destone28/farmadisplay
-- Issues: https://github.com/destone28/farmadisplay/issues
+- Email: admin@turnotec.com
+- GitHub: https://github.com/destone28/turnotec
+- Issues: https://github.com/destone28/turnotec/issues

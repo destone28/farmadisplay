@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# FarmaDisplay Frontend Setup Script
+# TurnoTec Frontend Setup Script
 
 set -e
 
-echo "🚀 Setting up FarmaDisplay Frontend..."
+echo "🚀 Setting up TurnoTec Frontend..."
 
 # Check Node.js version
 echo "📦 Checking Node.js version..."
