@@ -132,6 +132,8 @@ Soft delete - sets `is_active=false` and deactivates all devices.
 
 ## 📅 Shifts API
 
+> ⏸️ **NOTA**: Le funzionalità Shifts sono temporaneamente nascoste nell'interfaccia utente frontend. Le API rimangono disponibili e funzionali per uso futuro.
+
 ### List Shifts
 
 ```http
@@ -213,6 +215,8 @@ DELETE /api/v1/shifts/{shift_id}
 ---
 
 ## 📱 Devices API
+
+> ❌ **NOTA**: Le funzionalità Device sono state rimosse dall'interfaccia utente frontend. Le API rimangono disponibili per retrocompatibilità e uso diretto, ma non sono più accessibili tramite la dashboard web.
 
 ### Register Device (Admin Only)
 

@@ -52,8 +52,8 @@ Password: Admin1234
 # Funzionalità disponibili:
 - ✅ Dashboard con statistiche
 - ✅ Gestione farmacie (lista, crea, modifica, elimina)
-- ✅ Gestione turni con calendario FullCalendar
-- ✅ Gestione dispositivi
+- ⏸️ Gestione turni con calendario FullCalendar (temporaneamente nascosta)
+- ❌ Gestione dispositivi (rimossa)
 - ✅ Profilo utente
 ```
 
@@ -90,7 +90,7 @@ curl http://localhost:8000/api/v1/display/b89a97e9-9d2d-412f-89b1-7dfe8b85ef1d
 #### Cosa Mostra il Display
 - ✅ Nome e indirizzo farmacia
 - ✅ Orologio e data in tempo reale
-- ✅ Turni correnti (solo se l'ora attuale rientra nel turno)
+- ⏸️ Turni correnti (feature temporaneamente nascosta)
 - ✅ Farmacie vicine entro 5km (con calcolo distanza)
 - ⏳ Messaggi (feature futura)
 
@@ -147,8 +147,8 @@ python3 -m http.server 8080
 Tabelle create:
 - `users` - Utenti del sistema (admin/user roles)
 - `pharmacies` - Anagrafica farmacie con coordinate
-- `shifts` - Turni di servizio delle farmacie
-- `devices` - Dispositivi Raspberry Pi registrati
+- ~~`shifts` - Turni di servizio delle farmacie~~ (temporaneamente disabilitato in UI)
+- ~~`devices` - Dispositivi Raspberry Pi registrati~~ (rimosso dalla UI)
 
 ## ⚠️ Note Importanti
 
@@ -270,11 +270,11 @@ Apri Developer Tools per vedere chiamate API e aggiornamenti.
 
 ## 🎯 Prossimi Step Consigliati
 
-1. **Testare Frontend**: Login, creazione farmacia, gestione turni
+1. **Testare Frontend**: Login, creazione farmacia
 2. **Testare Display**: Verificare caricamento dati in tempo reale
-3. **Creare Più Turni**: Per testare visualizzazione multipli turni
+3. ~~**Creare Più Turni**: Per testare visualizzazione multipli turni~~ (feature temporaneamente nascosta)
 4. **Test Geolocalizzazione**: Creare farmacie vicine per testare calcolo distanze
-5. **Test Device**: Registrare dispositivo Raspberry Pi simulato
+5. ~~**Test Device**: Registrare dispositivo Raspberry Pi simulato~~ (feature rimossa dalla UI)
 
 ## 📝 Commit Effettuati
 

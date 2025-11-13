@@ -7,8 +7,8 @@ import { useState } from 'react'
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Farmacie', href: '/pharmacies', icon: MapPin },
-  { name: 'Turni', href: '/shifts', icon: Calendar },
-  { name: 'Dispositivi', href: '/devices', icon: Monitor },
+  // { name: 'Turni', href: '/shifts', icon: Calendar }, // Temporaneamente nascosto
+  // { name: 'Dispositivi', href: '/devices', icon: Monitor }, // Rimosso
   { name: 'Bacheca', href: '/bacheca', icon: Tv },
 ]
 

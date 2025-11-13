@@ -20,22 +20,23 @@ frontend/
 │   │   │   └── dialog.tsx               # shadcn/ui Dialog
 │   │   ├── pharmacies/
 │   │   │   └── PharmacyDialog.tsx       # Create/Edit pharmacy
-│   │   ├── shifts/
+│   │   ├── shifts/                      # ⏸️ Temporaneamente nascosta
 │   │   │   └── ShiftDialog.tsx          # Create/Edit shift
-│   │   └── devices/
+│   │   └── devices/                     # ❌ Rimossa (non più utilizzata)
 │   │       ├── DeviceDialog.tsx         # Register device
 │   │       └── ActivateDeviceDialog.tsx # Activate device
 │   ├── pages/
 │   │   ├── DashboardPage.tsx            # Home dashboard
 │   │   ├── LoginPage.tsx                # Login form
 │   │   ├── PharmaciesPage.tsx           # Pharmacy management
-│   │   ├── ShiftsPage.tsx               # Calendar view
-│   │   └── DevicesPage.tsx              # Device management
+│   │   ├── ShiftsPage.tsx               # ⏸️ Calendar view (temporaneamente nascosta)
+│   │   ├── DevicesPage.tsx              # ❌ Device management (rimossa)
+│   │   └── BachecaPage.tsx              # Bacheca pubblica
 │   ├── hooks/
 │   │   ├── useAuth.ts                   # Auth hook
 │   │   ├── usePharmacies.ts             # Pharmacy CRUD
-│   │   ├── useShifts.ts                 # Shift CRUD
-│   │   └── useDevices.ts                # Device CRUD
+│   │   ├── useShifts.ts                 # ⏸️ Shift CRUD (temporaneamente inutilizzato)
+│   │   └── useDevices.ts                # ❌ Device CRUD (rimosso)
 │   ├── stores/
 │   │   └── authStore.ts                 # Zustand auth store
 │   ├── lib/
@@ -64,7 +65,9 @@ frontend/
 
 ### 2. Dashboard Layout
 - **Responsive Sidebar**: Collapsible on mobile
-- **Navigation**: Home, Pharmacies, Shifts, Devices
+- **Navigation**: Home, Pharmacies, ~~Shifts~~, ~~Devices~~, Bacheca
+  - ⏸️ Shifts: Temporaneamente nascosta
+  - ❌ Devices: Rimossa
 - **User Info**: Display username and role
 - **Active State**: Highlight current page
 
@@ -75,21 +78,23 @@ frontend/
 - **Status Indicators**: Active/Inactive badges
 - **Search**: Real-time filtering (backend supported)
 
-### 4. Shift Calendar
+### 4. Shift Calendar ⏸️ (Temporaneamente Nascosta)
 - **FullCalendar**: Month, Week, Day views
 - **Pharmacy Selector**: Dropdown to filter shifts
 - **Create Shifts**: Click calendar to create
 - **Edit Shifts**: Click event to edit
 - **Recurring Shifts**: RRULE support with checkbox
 - **Italian Locale**: Calendar in Italian
+- **Stato**: Feature commentata nel codice, non eliminata
 
-### 5. Device Management
-- **Status Badges**: Active, Pending, Inactive, Maintenance
-- **Register Device**: Admin only (RBAC)
-- **Activate Device**: Two-step activation flow
-- **Activation Codes**: Display for pending devices
-- **Last Seen**: Timestamp for active devices
-- **Delete**: Admin only
+### 5. Device Management ❌ (Rimossa)
+- ~~**Status Badges**: Active, Pending, Inactive, Maintenance~~
+- ~~**Register Device**: Admin only (RBAC)~~
+- ~~**Activate Device**: Two-step activation flow~~
+- ~~**Activation Codes**: Display for pending devices~~
+- ~~**Last Seen**: Timestamp for active devices~~
+- ~~**Delete**: Admin only~~
+- **Stato**: Feature rimossa completamente dalla UI
 
 ## 🔧 Technical Implementation
 
@@ -97,8 +102,8 @@ frontend/
 ```typescript
 // Server State (TanStack Query)
 usePharmacies({ skip: 0, limit: 20, search: 'milano' })
-useShifts({ pharmacy_id: id, start_date, end_date })
-useDevices({ status: 'active' })
+// useShifts({ pharmacy_id: id, start_date, end_date }) // ⏸️ Temporaneamente nascosto
+// useDevices({ status: 'active' }) // ❌ Rimosso
 
 // Client State (Zustand)
 const { user, login, logout } = useAuth()
@@ -241,8 +246,8 @@ Password: Admin123!
 - [x] Dashboard layout (responsive sidebar)
 - [x] Login page
 - [x] Pharmacy management (CRUD)
-- [x] Shift calendar (FullCalendar)
-- [x] Device management (register, activate)
+- [ ] ~~Shift calendar (FullCalendar)~~ ⏸️ Temporaneamente nascosto
+- [ ] ~~Device management (register, activate)~~ ❌ Rimosso
 - [x] Form validation (React Hook Form + Zod)
 - [x] RBAC (admin-only features)
 - [x] Mobile-first responsive design

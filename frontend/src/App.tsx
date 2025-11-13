@@ -7,8 +7,8 @@ import { useAuth } from '@/hooks/useAuth'
 import LoginPage from '@/pages/LoginPage'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import PharmaciesPage from '@/pages/PharmaciesPage'
-import ShiftsPage from '@/pages/ShiftsPage'
-import DevicesPage from '@/pages/DevicesPage'
+// import ShiftsPage from '@/pages/ShiftsPage' // Temporaneamente nascosto
+// import DevicesPage from '@/pages/DevicesPage' // Rimosso
 import DashboardPage from '@/pages/DashboardPage'
 import { BachecaPage } from '@/pages/BachecaPage'
 import { PublicDisplayPage } from '@/pages/PublicDisplayPage'
@@ -69,8 +69,8 @@ function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="pharmacies" element={<PharmaciesPage />} />
-            <Route path="shifts" element={<ShiftsPage />} />
-            <Route path="devices" element={<DevicesPage />} />
+            {/* <Route path="shifts" element={<ShiftsPage />} /> */} {/* Temporaneamente nascosto */}
+            {/* <Route path="devices" element={<DevicesPage />} /> */} {/* Rimosso */}
             <Route path="bacheca" element={<BachecaPage />} />
           </Route>
 

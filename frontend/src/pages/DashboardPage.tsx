@@ -25,6 +25,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Temporaneamente nascosto
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs sm:text-sm font-medium">Turni</CardTitle>
@@ -37,19 +38,9 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+        */}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Dispositivi</CardTitle>
-            <Monitor className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">--</div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              Dispositivi attivi
-            </p>
-          </CardContent>
-        </Card>
+        {/* Rimosso - Card Dispositivi */}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -79,18 +70,15 @@ export default function DashboardPage() {
               Aggiungi e gestisci le tue farmacie, incluse informazioni di contatto e posizione geografica.
             </p>
           </div>
+          {/* Temporaneamente nascosto
           <div className="space-y-1 sm:space-y-2">
             <h3 className="text-sm sm:text-base font-semibold">2. Programmazione Turni</h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Crea turni singoli o ricorrenti per le tue farmacie utilizzando il calendario integrato.
             </p>
           </div>
-          <div className="space-y-1 sm:space-y-2">
-            <h3 className="text-sm sm:text-base font-semibold">3. Gestione Dispositivi</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Registra e attiva dispositivi Raspberry Pi per visualizzare i turni presso le farmacie.
-            </p>
-          </div>
+          */}
+          {/* Rimosso - Sezione Gestione Dispositivi */}
         </CardContent>
       </Card>
     </div>

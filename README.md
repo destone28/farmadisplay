@@ -7,8 +7,8 @@ Sistema completo per gestire e visualizzare turni farmaceutici tramite bacheche 
 - ✅ **Backend API** - FastAPI + PostgreSQL + PostGIS
 - ✅ **Dashboard Web** - React + TypeScript + TailwindCSS
 - ✅ **Display Pubblico** - Vanilla JS ultra-leggero (<10KB)
-- ✅ **Device IoT** - Raspberry Pi Zero 2 W con FullPageOS
-- ✅ **Network Healing** - Auto-reconnect Ethernet/WiFi
+- ⏸️ ~~**Device IoT** - Raspberry Pi Zero 2 W con FullPageOS~~ (Temporaneamente disabilitato)
+- ⏸️ ~~**Network Healing** - Auto-reconnect Ethernet/WiFi~~ (Temporaneamente disabilitato)
 - ✅ **Sicurezza** - JWT auth, HTTPS, Rate limiting
 
 ## 📁 Struttura Progetto
@@ -16,7 +16,7 @@ Sistema completo per gestire e visualizzare turni farmaceutici tramite bacheche 
 - `/backend` - API FastAPI (Python 3.11+)
 - `/frontend` - Dashboard React (TypeScript)
 - `/display` - Pagina display pubblica (Vanilla JS)
-- `/device` - Script Raspberry Pi e configurazioni
+- ~~`/device` - Script Raspberry Pi e configurazioni~~ (Temporaneamente disabilitato)
 - `/deployment` - Script deployment e configurazione server
 - `/docs` - Documentazione completa
 
