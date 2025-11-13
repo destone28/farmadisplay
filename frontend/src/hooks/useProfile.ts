@@ -1,9 +1,10 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import api from '@/lib/api'
-import type { User, ProfileUpdate } from '@/types'
+import { useAuthStore } from '@/stores/authStore'
+import type { User, ProfileUpdate, PasswordChange } from '@/types'
 
 export function useUpdateProfile() {
-  const queryClient = useQueryClient()
+  const updateUser = useAuthStore((state) => state.updateUser)
 
   return useMutation({
     mutationFn: async (data: ProfileUpdate) => {
@@ -11,10 +12,17 @@ export function useUpdateProfile() {
       return updatedUser
     },
     onSuccess: (data) => {
-      // Invalidate current user query to refresh the UI
-      queryClient.setQueryData(['currentUser'], data)
-      // Also invalidate any user-related queries
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+      // Update the auth store with the new user data
+      updateUser(data)
+    },
+  })
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (data: PasswordChange) => {
+      const { data: response } = await api.post<{ message: string }>('/auth/change-password', data)
+      return response
     },
   })
 }

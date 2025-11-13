@@ -2,14 +2,14 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { User, Mail, Phone, MapPin } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/hooks/useAuth'
-import { useUpdateProfile } from '@/hooks/useProfile'
-import type { ProfileUpdate } from '@/types'
+import { useUpdateProfile, useChangePassword } from '@/hooks/useProfile'
+import type { ProfileUpdate, PasswordChange } from '@/types'
 
 const profileSchema = z.object({
   email: z.string().email('Email non valida').optional().or(z.literal('')),
@@ -19,9 +19,19 @@ const profileSchema = z.object({
   address: z.string().max(500, 'Indirizzo troppo lungo').optional().or(z.literal('')),
 })
 
+const passwordSchema = z.object({
+  current_password: z.string().min(1, 'Password corrente richiesta'),
+  new_password: z.string()
+    .min(8, 'Password deve essere almeno 8 caratteri')
+    .regex(/[A-Z]/, 'Password deve contenere almeno una maiuscola')
+    .regex(/[a-z]/, 'Password deve contenere almeno una minuscola')
+    .regex(/[0-9]/, 'Password deve contenere almeno un numero'),
+})
+
 export default function ProfilePage() {
   const { user } = useAuth()
   const updateProfile = useUpdateProfile()
+  const changePassword = useChangePassword()
 
   const {
     register,
@@ -36,6 +46,19 @@ export default function ProfilePage() {
       city: user?.city || '',
       postal_code: user?.postal_code || '',
       address: user?.address || '',
+    },
+  })
+
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    reset: resetPassword,
+    formState: { errors: passwordErrors, isSubmitting: isSubmittingPassword },
+  } = useForm<PasswordChange>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      current_password: '',
+      new_password: '',
     },
   })
 
@@ -61,6 +84,31 @@ export default function ProfilePage() {
 
       // Extract error message
       let errorMessage = 'Errore durante l\'aggiornamento del profilo'
+
+      if (error.response?.data?.detail) {
+        if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail
+            .map((err: any) => `${err.loc?.join(' → ') || 'Campo'}: ${err.msg}`)
+            .join('\n')
+        } else if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail
+        }
+      }
+
+      alert(errorMessage)
+    }
+  }
+
+  const onSubmitPassword = async (data: PasswordChange) => {
+    try {
+      await changePassword.mutateAsync(data)
+      resetPassword()
+      alert('Password modificata con successo!')
+    } catch (error: any) {
+      console.error('Error changing password:', error)
+
+      // Extract error message
+      let errorMessage = 'Errore durante il cambio password'
 
       if (error.response?.data?.detail) {
         if (Array.isArray(error.response.data.detail)) {
@@ -255,6 +303,84 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     'Salva Modifiche'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Password Change Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sicurezza</CardTitle>
+            <CardDescription>
+              Modifica la tua password
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmitPassword(onSubmitPassword)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current_password">
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Password Corrente
+                  </div>
+                </Label>
+                <Input
+                  id="current_password"
+                  type="password"
+                  placeholder="••••••••"
+                  {...registerPassword('current_password')}
+                />
+                {passwordErrors.current_password && (
+                  <p className="text-sm text-destructive">{passwordErrors.current_password.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="new_password">
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Nuova Password
+                  </div>
+                </Label>
+                <Input
+                  id="new_password"
+                  type="password"
+                  placeholder="••••••••"
+                  {...registerPassword('new_password')}
+                />
+                {passwordErrors.new_password && (
+                  <p className="text-sm text-destructive">{passwordErrors.new_password.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Minimo 8 caratteri, almeno una maiuscola, una minuscola e un numero
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => resetPassword()}
+                  disabled={isSubmittingPassword}
+                  className="flex-1 sm:flex-initial"
+                >
+                  Annulla
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmittingPassword}
+                  className="flex-1 sm:flex-initial"
+                >
+                  {isSubmittingPassword ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Modifica...
+                    </>
+                  ) : (
+                    'Cambia Password'
                   )}
                 </Button>
               </div>

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, ProfileUpdate
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, ProfileUpdate, PasswordChange
 from app.utils.security import verify_password, get_password_hash, create_access_token
 from app.dependencies import CurrentUser
 from app.config import get_settings
@@ -171,6 +171,47 @@ async def update_profile(
     db.refresh(current_user)
 
     return current_user
+
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+    password_data: PasswordChange,
+    current_user: CurrentUser,
+    db: Session = Depends(get_db)
+) -> dict[str, str]:
+    """
+    Change current user's password.
+
+    Args:
+        password_data: Current and new password
+        current_user: The authenticated user
+        db: Database session
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException: If current password is incorrect
+    """
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+
+    # Ensure new password is different from current
+    if verify_password(password_data.new_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+
+    # Update password
+    current_user.password_hash = get_password_hash(password_data.new_password)
+    db.commit()
+
+    return {"message": "Password changed successfully"}
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)

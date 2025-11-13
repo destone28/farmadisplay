@@ -59,6 +59,11 @@ export interface ProfileUpdate {
   address?: string
 }
 
+export interface PasswordChange {
+  current_password: string
+  new_password: string
+}
+
 export interface Pharmacy {
   id: string
   user_id: string
