@@ -1,0 +1,20 @@
+[Unit]
+Description=TurnoTec Setup Web Server
+After=turnotec-hotspot.service
+Requires=turnotec-hotspot.service
+ConditionPathExists=!/opt/turnotec/config.json
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/turnotec/web
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/python3 /opt/turnotec/web/app.py
+StandardOutput=journal
+StandardError=journal
+Restart=on-failure
+RestartSec=10
+Environment="FLASK_ENV=production"
+
+[Install]
+WantedBy=multi-user.target

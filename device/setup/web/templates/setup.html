@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TurnoTec - Configurazione Dispositivo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .form-container {
+            padding: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: start;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-group label .required {
+            color: #dc3545;
+            margin-left: 0.2rem;
+        }
+
+        .form-group label .optional {
+            color: #6c757d;
+            font-weight: normal;
+            font-size: 0.85rem;
+            margin-left: 0.3rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.4rem;
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .connection-status {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .connection-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.connected {
+            background: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+        }
+
+        .status-dot.disconnected {
+            background: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-loading {
+            opacity: 0.8;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-confirm {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #5568d3;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-message h3 {
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .success-message p {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 TurnoTec</h1>
+            <p>Configurazione Dispositivo</p>
+        </div>
+
+        <div class="form-container">
+            <div class="connection-status">
+                <div class="connection-item">
+                    <div class="status-dot {% if ethernet_connected %}connected{% else %}disconnected{% endif %}"></div>
+                    <span>Ethernet</span>
+                </div>
+                <div class="connection-item">
+                    <div class="status-dot {% if wifi_available %}connected{% else %}disconnected{% endif %}"></div>
+                    <span>WiFi</span>
+                </div>
+            </div>
+
+            {% if not ethernet_connected %}
+            <div class="alert alert-warning">
+                <span class="alert-icon">⚠️</span>
+                <div>
+                    <strong>Ethernet non connesso</strong><br>
+                    Le credenziali WiFi sono obbligatorie per garantire la connettività del dispositivo.
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <span class="alert-icon">ℹ️</span>
+                <div>
+                    <strong>Ethernet connesso</strong><br>
+                    Le credenziali WiFi sono opzionali. Il dispositivo può funzionare anche solo con Ethernet.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="alert alert-warning">
+                <span class="alert-icon">🔌</span>
+                <div>
+                    <strong>Importante:</strong> Il dispositivo deve essere sempre connesso almeno ad Ethernet o WiFi per funzionare correttamente.
+                </div>
+            </div>
+
+            <form id="setupForm">
+                <div class="form-group">
+                    <label for="display_id">
+                        ID Display
+                        <span class="required">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="display_id"
+                        name="display_id"
+                        placeholder="es: abc123"
+                        required
+                        minlength="3"
+                        pattern="[a-zA-Z0-9]+"
+                    >
+                    <small>Inserisci l'ID del display fornito dall'amministratore (solo lettere e numeri)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="wifi_ssid">
+                        Nome Rete WiFi (SSID)
+                        {% if ethernet_connected %}
+                        <span class="optional">(opzionale)</span>
+                        {% else %}
+                        <span class="required">*</span>
+                        {% endif %}
+                    </label>
+                    <input
+                        type="text"
+                        id="wifi_ssid"
+                        name="wifi_ssid"
+                        placeholder="Nome della tua rete WiFi"
+                        {% if not ethernet_connected %}required{% endif %}
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="wifi_password">
+                        Password WiFi
+                        {% if ethernet_connected %}
+                        <span class="optional">(opzionale)</span>
+                        {% else %}
+                        <span class="required">*</span>
+                        {% endif %}
+                    </label>
+                    <input
+                        type="password"
+                        id="wifi_password"
+                        name="wifi_password"
+                        placeholder="Password della tua rete WiFi"
+                        {% if not ethernet_connected %}required{% endif %}
+                    >
+                    <small>La password verrà salvata in modo sicuro sul dispositivo</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="btnText">Configura e Riavvia</span>
+                    <span id="btnSpinner" class="spinner" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div class="success-message" id="successMessage">
+                <div class="success-icon">✅</div>
+                <h3>Configurazione Completata!</h3>
+                <p>Il dispositivo si riavvierà automaticamente tra pochi secondi e si connetterà alla rete configurata.</p>
+                <p><small>Puoi chiudere questa pagina.</small></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3>⚠️ Conferma Configurazione</h3>
+            <p id="confirmMessage"></p>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Annulla</button>
+                <button type="button" class="btn-confirm" onclick="confirmSubmit()">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('setupForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const modal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const successMessage = document.getElementById('successMessage');
+        const ethernetConnected = {{ 'true' if ethernet_connected else 'false' }};
+
+        let formData = null;
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const displayId = document.getElementById('display_id').value.trim();
+            const wifiSsid = document.getElementById('wifi_ssid').value.trim();
+            const wifiPassword = document.getElementById('wifi_password').value.trim();
+
+            // Build confirmation message
+            let message = `Stai per configurare il dispositivo con:\n\n`;
+            message += `📺 Display ID: ${displayId}\n\n`;
+
+            if (wifiSsid && wifiPassword) {
+                message += `📶 WiFi: ${wifiSsid}\n\n`;
+            } else if (ethernetConnected) {
+                message += `🔌 Solo Ethernet (nessun WiFi configurato)\n\n`;
+            }
+
+            message += `Il dispositivo si riavvierà automaticamente dopo la configurazione.\n\nVuoi continuare?`;
+
+            confirmMessage.textContent = message;
+            formData = {
+                display_id: displayId,
+                wifi_ssid: wifiSsid,
+                wifi_password: wifiPassword,
+                domain: 'turnotec.com'
+            };
+
+            modal.classList.add('active');
+        });
+
+        function closeModal() {
+            modal.classList.remove('active');
+            formData = null;
+        }
+
+        async function confirmSubmit() {
+            modal.classList.remove('active');
+
+            // Disable form and show loading
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-loading');
+            btnText.textContent = 'Configurazione in corso...';
+            btnSpinner.style.display = 'block';
+
+            try {
+                const response = await fetch('/configure', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success message
+                    form.style.display = 'none';
+                    successMessage.classList.add('active');
+
+                    // Optionally redirect or close after delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 10000);
+                } else {
+                    // Show error
+                    alert('Errore: ' + result.error);
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-loading');
+                    btnText.textContent = 'Configura e Riavvia';
+                    btnSpinner.style.display = 'none';
+                }
+            } catch (error) {
+                alert('Errore di connessione: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-loading');
+                btnText.textContent = 'Configura e Riavvia';
+                btnSpinner.style.display = 'none';
+            }
+        }
+
+        // Auto-fill WiFi password when SSID is entered (for UX)
+        const wifiSsidInput = document.getElementById('wifi_ssid');
+        const wifiPasswordInput = document.getElementById('wifi_password');
+
+        wifiSsidInput.addEventListener('input', function() {
+            if (this.value && !ethernetConnected) {
+                wifiPasswordInput.required = true;
+            } else if (!this.value && ethernetConnected) {
+                wifiPasswordInput.required = false;
+            }
+        });
+    </script>
+</body>
+</html>

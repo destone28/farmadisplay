@@ -1,0 +1,17 @@
+# TurnoTec FullPageOS Configuration Template
+# This file will be updated by the configuration script
+
+# Display URL (will be set during configuration)
+FULLPAGEOS_URL=file:///opt/turnotec/web/templates/instructions.html
+
+# Hide mouse cursor
+FULLPAGEOS_HIDE_CURSOR=yes
+
+# Screen rotation (normal, right, left, inverted)
+FULLPAGEOS_ROTATE_DISPLAY=normal
+
+# Disable screen blanking
+FULLPAGEOS_DISABLE_SCREEN_BLANKING=yes
+
+# Chromium flags file
+FULLPAGEOS_CHROMIUM_FLAGS_FILE=/boot/chromium-flags.txt

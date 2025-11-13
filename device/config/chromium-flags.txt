@@ -1,0 +1,68 @@
+# TurnoTec Chromium Flags
+# Optimized for Raspberry Pi Zero 2 W (512MB RAM)
+
+# Memory Management
+--disable-dev-shm-usage
+--disable-software-rasterizer
+--disable-gpu-rasterization
+--disable-accelerated-video-decode
+--disable-accelerated-video-encode
+
+# Bypass RAM check (Chromium recommends 1GB, we have 512MB)
+--no-memcheck
+
+# Disable unnecessary features
+--disable-features=TranslateUI
+--disable-features=Translate
+--disable-sync
+--disable-background-networking
+--disable-background-timer-throttling
+--disable-backgrounding-occluded-windows
+--disable-breakpad
+--disable-client-side-phishing-detection
+--disable-component-update
+--disable-default-apps
+--disable-domain-reliability
+--disable-features=AutofillServerCommunication
+--disable-hang-monitor
+--disable-ipc-flooding-protection
+--disable-popup-blocking
+--disable-prompt-on-repost
+--disable-renderer-backgrounding
+--disable-sync
+--metrics-recording-only
+--no-first-run
+--no-pings
+--password-store=basic
+--use-mock-keychain
+--safebrowsing-disable-auto-update
+
+# Performance optimizations
+--enable-features=OverlayScrollbar
+--enable-smooth-scrolling
+--enable-fast-unload
+--enable-tcp-fast-open
+--max-gum-fps=30
+--num-raster-threads=2
+
+# Kiosk mode
+--kiosk
+--noerrdialogs
+--disable-infobars
+--disable-session-crashed-bubble
+--disable-pinch
+--check-for-update-interval=31536000
+
+# Display settings
+--window-size=1920,1080
+--window-position=0,0
+--start-fullscreen
+--force-device-scale-factor=1
+
+# Security (disable unnecessary warnings in kiosk)
+--disable-web-security
+--ignore-certificate-errors
+--allow-running-insecure-content
+
+# Autoplay
+--autoplay-policy=no-user-gesture-required

@@ -1,0 +1,17 @@
+[Unit]
+Description=TurnoTec Hotspot Manager
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/turnotec/scripts/hotspot_manager.sh auto
+ExecStop=/opt/turnotec/scripts/hotspot_manager.sh stop
+StandardOutput=journal
+StandardError=journal
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

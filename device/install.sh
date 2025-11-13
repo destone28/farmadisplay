@@ -1,114 +1,157 @@
 #!/bin/bash
-# TurnoTec Device Installation Script
+###############################################################################
+# TurnoTec Device Setup - Installation Script
+# Run this script on a fresh FullPageOS installation
+###############################################################################
 
 set -e
 
-echo "🚀 Installing TurnoTec Device Services..."
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+echo "========================================="
+echo "TurnoTec Device Setup - Installation"
+echo "========================================="
+echo ""
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}Please run as root (sudo)${NC}"
+    echo "ERROR: This script must be run as root"
+    echo "Please run: sudo $0"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Running with root privileges${NC}"
+# Check if running on Raspberry Pi
+if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
+    echo "WARNING: This doesn't appear to be a Raspberry Pi"
+    read -p "Continue anyway? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
 
-# Install system dependencies
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "Installation directory: $SCRIPT_DIR"
 echo ""
-echo -e "${YELLOW}📦 Installing system dependencies...${NC}"
-apt-get update
+
+# Install required packages
+echo "[1/8] Installing required packages..."
+apt-get update -qq
 apt-get install -y \
-    python3 \
+    hostapd \
+    dnsmasq \
+    python3-flask \
     python3-pip \
-    python3-venv \
-    bluetooth \
-    libbluetooth-dev \
-    python3-dev \
-    build-essential \
-    network-manager \
+    jq \
     wireless-tools \
-    wpasupplicant
+    iw \
+    curl \
+    net-tools
 
-echo -e "${GREEN}✓ System dependencies installed${NC}"
+# Ensure dnsmasq and hostapd are stopped and disabled by default
+systemctl stop dnsmasq hostapd 2>/dev/null || true
+systemctl disable dnsmasq hostapd 2>/dev/null || true
 
-# Install Python packages
+echo "✓ Packages installed"
 echo ""
-echo -e "${YELLOW}🐍 Installing Python packages...${NC}"
-pip3 install --break-system-packages pybluez requests --no-cache-dir
 
-echo -e "${GREEN}✓ Python packages installed${NC}"
-
-# Create TurnoTec directory
+# Create directory structure
+echo "[2/8] Creating directory structure..."
+mkdir -p /opt/turnotec/{scripts,web/templates,web/static}
+mkdir -p /var/log/turnotec
+chmod 755 /opt/turnotec
+echo "✓ Directories created"
 echo ""
-echo -e "${YELLOW}📁 Creating TurnoTec directories...${NC}"
-mkdir -p /home/pi/.turnotec
-mkdir -p /var/log
-
-echo -e "${GREEN}✓ Directories created${NC}"
 
 # Copy scripts
+echo "[3/8] Copying scripts..."
+cp "$SCRIPT_DIR/setup/scripts/"*.sh /opt/turnotec/scripts/
+chmod +x /opt/turnotec/scripts/*.sh
+echo "✓ Scripts copied"
 echo ""
-echo -e "${YELLOW}📜 Installing scripts...${NC}"
-cp scripts/network_healing_daemon.py /usr/local/bin/
-cp scripts/bt_wifi_config_server.py /usr/local/bin/
-cp scripts/memory_monitor.sh /usr/local/bin/
-chmod +x /usr/local/bin/network_healing_daemon.py
-chmod +x /usr/local/bin/bt_wifi_config_server.py
-chmod +x /usr/local/bin/memory_monitor.sh
 
-echo -e "${GREEN}✓ Scripts installed${NC}"
+# Copy web application
+echo "[4/8] Copying web application..."
+cp "$SCRIPT_DIR/setup/web/app.py" /opt/turnotec/web/
+cp "$SCRIPT_DIR/setup/web/templates/"*.html /opt/turnotec/web/templates/
+chmod 644 /opt/turnotec/web/templates/*.html
+echo "✓ Web application copied"
+echo ""
 
 # Copy systemd services
-echo ""
-echo -e "${YELLOW}🔧 Installing systemd services...${NC}"
-cp systemd/turnotec-network.service /etc/systemd/system/
-cp systemd/turnotec-bt-config.service /etc/systemd/system/
-cp systemd/turnotec-watchdog.service /etc/systemd/system/
-
-echo -e "${GREEN}✓ Systemd services installed${NC}"
-
-# Enable services
-echo ""
-echo -e "${YELLOW}⚙️  Enabling services...${NC}"
+echo "[5/8] Installing systemd services..."
+cp "$SCRIPT_DIR/setup/systemd/"*.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable turnotec-network
-systemctl enable turnotec-bt-config
-systemctl enable turnotec-watchdog
+systemctl enable turnotec-hotspot.service
+systemctl enable turnotec-monitor.service
+echo "✓ Systemd services installed"
+echo ""
 
-echo -e "${GREEN}✓ Services enabled${NC}"
+# Configure Chromium flags
+echo "[6/8] Configuring Chromium..."
 
-# Start services
-echo ""
-echo -e "${YELLOW}▶️  Starting services...${NC}"
-systemctl start turnotec-network
-systemctl start turnotec-bt-config
-systemctl start turnotec-watchdog
+# Copy chromium flags to boot partition
+if [ -d /boot ]; then
+    cp "$SCRIPT_DIR/config/chromium-flags.txt" /boot/
+    echo "✓ Chromium flags copied to /boot/"
+else
+    echo "⚠ WARNING: /boot directory not found, skipping chromium-flags.txt"
+fi
 
-echo -e "${GREEN}✓ Services started${NC}"
+# Copy FullPageOS template
+cp "$SCRIPT_DIR/config/fullpageos-template.txt" /boot/fullpageos.txt 2>/dev/null || \
+    echo "⚠ WARNING: Could not copy fullpageos.txt to /boot"
 
-# Check service status
+echo "✓ Chromium configured"
 echo ""
-echo -e "${YELLOW}📊 Service Status:${NC}"
-echo ""
-systemctl status turnotec-network --no-pager | head -n 5
-echo ""
-systemctl status turnotec-bt-config --no-pager | head -n 5
-echo ""
-systemctl status turnotec-watchdog --no-pager | head -n 5
 
+# Configure initial display page
+echo "[7/8] Configuring initial display page..."
+
+# Ensure instructions.html is served initially
+if [ -f /boot/fullpageos.txt ]; then
+    sed -i 's|^FULLPAGEOS_URL=.*|FULLPAGEOS_URL=file:///opt/turnotec/web/templates/instructions.html|' /boot/fullpageos.txt
+fi
+
+echo "✓ Initial display page configured"
 echo ""
-echo -e "${GREEN}✅ Installation complete!${NC}"
+
+# Set permissions
+echo "[8/8] Setting permissions..."
+chown -R root:root /opt/turnotec
+chmod -R 755 /opt/turnotec/scripts
+chmod 644 /opt/turnotec/web/app.py
+echo "✓ Permissions set"
 echo ""
-echo -e "${YELLOW}📝 Next steps:${NC}"
-echo "  1. Set device ID: echo 'YOUR_DEVICE_ID' > /home/pi/.turnotec/device_id"
-echo "  2. Configure WiFi via Bluetooth using the mobile app"
-echo "  3. Check logs: tail -f /var/log/turnotec-*.log"
-echo "  4. Check service status: sudo systemctl status turnotec-*"
+
+# Create initial state
+echo "Creating initial state..."
+cat > /opt/turnotec/state.json <<EOF
+{
+  "installed_at": "$(date -Iseconds)",
+  "version": "1.0.0",
+  "configured": false
+}
+EOF
+
+echo "========================================="
+echo "Installation completed successfully!"
+echo "========================================="
 echo ""
-echo -e "${GREEN}🎉 TurnoTec device is ready!${NC}"
+echo "Next steps:"
+echo "1. Reboot the device: sudo reboot"
+echo "2. The device will show configuration instructions on screen"
+echo "3. Connect your smartphone to WiFi: TurnoTec"
+echo "4. Visit http://192.168.4.1 from your smartphone"
+echo "5. Complete the configuration form"
+echo ""
+echo "The device will automatically reboot and display the configured page."
+echo ""
+read -p "Reboot now? (Y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    echo "Rebooting in 3 seconds..."
+    sleep 3
+    reboot
+else
+    echo "Please reboot manually when ready: sudo reboot"
+fi

@@ -1,0 +1,16 @@
+[Unit]
+Description=TurnoTec Connectivity Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/turnotec/scripts/connectivity_monitor.sh
+StandardOutput=journal
+StandardError=journal
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
