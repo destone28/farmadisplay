@@ -65,7 +65,12 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
 
   useEffect(() => {
     if (open) {
-      reset(user || { role: 'user' })
+      // Convert boolean is_active to string for the select field
+      const userData = user ? {
+        ...user,
+        is_active: user.is_active ? 'true' : 'false'
+      } : { role: 'user' }
+      reset(userData)
     }
   }, [open, user, reset])
 
