@@ -71,10 +71,16 @@ export default function UserDialog({ open, onOpenChange, user }: UserDialogProps
 
   const onSubmit = async (data: UserCreate | UserUpdate) => {
     try {
+      // Convert is_active string to boolean if it exists
+      const processedData = { ...data }
+      if (isEditing && 'is_active' in processedData) {
+        processedData.is_active = processedData.is_active === 'true' || processedData.is_active === true
+      }
+
       if (isEditing) {
-        await updateUser.mutateAsync({ id: user.id, data: data as UserUpdate })
+        await updateUser.mutateAsync({ id: user.id, data: processedData as UserUpdate })
       } else {
-        await createUser.mutateAsync(data as UserCreate)
+        await createUser.mutateAsync(processedData as UserCreate)
       }
 
       onOpenChange(false)
