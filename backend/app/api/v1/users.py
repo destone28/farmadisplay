@@ -53,9 +53,6 @@ async def list_users(
             )
         )
 
-    # Only active users
-    query = query.filter(User.is_active == True)
-
     # Order by username
     query = query.order_by(User.username)
 
