@@ -174,15 +174,23 @@ class ScrapingService:
             locality_elem = address_div.find('span', itemprop='addressLocality')
             locality_text = locality_elem.get_text(strip=True) if locality_elem else ""
 
-            # Parse postal code and city from locality (format: "21043 CASTIGLIONE OLONA")
+            # Parse postal code and city from locality
+            # Format can be: "21043 CASTIGLIONE OLONA" or "21043CASTIGLIONE OLONA" (without space)
             postal_code = ""
             city = ""
             if locality_text:
-                parts = locality_text.split(maxsplit=1)
-                if len(parts) >= 1:
-                    postal_code = parts[0]
-                if len(parts) >= 2:
-                    city = parts[1].strip()
+                # Try to extract CAP (5 digits) and city using regex
+                match = re.match(r'^(\d{5})\s*(.+)$', locality_text)
+                if match:
+                    postal_code = match.group(1)
+                    city = match.group(2).strip()
+                else:
+                    # Fallback: split by space if regex fails
+                    parts = locality_text.split(maxsplit=1)
+                    if len(parts) >= 1:
+                        postal_code = parts[0]
+                    if len(parts) >= 2:
+                        city = parts[1].strip()
 
             region_elem = address_div.find('span', itemprop='addressRegion')
             province = region_elem.get_text(strip=True) if region_elem else ""
