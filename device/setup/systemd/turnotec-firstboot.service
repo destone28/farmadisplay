@@ -1,0 +1,16 @@
+[Unit]
+Description=TurnoTec First Boot Installation
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/opt/turnotec-installer/first_boot_install.sh
+ConditionPathExists=!/opt/turnotec/state.json
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/turnotec-installer/first_boot_install.sh
+StandardOutput=journal+console
+StandardError=journal+console
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -27,31 +27,8 @@ fi
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGES_DIR="$SCRIPT_DIR/packages"
 
 echo -e "${GREEN}Script directory: $SCRIPT_DIR${NC}"
-echo ""
-
-# Check if packages are downloaded
-if [ ! -d "$PACKAGES_DIR" ] || [ -z "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
-    echo -e "${YELLOW}⚠ WARNING: No .deb packages found!${NC}"
-    echo ""
-    echo "You need to download packages first:"
-    echo "  cd $SCRIPT_DIR"
-    echo "  chmod +x download_packages.sh"
-    echo "  ./download_packages.sh"
-    echo ""
-    read -p "Continue without packages? (yes/no): " CONFIRM
-    if [ "$CONFIRM" != "yes" ]; then
-        echo "Aborted. Please download packages first."
-        exit 1
-    fi
-    SKIP_PACKAGES=true
-else
-    PKG_COUNT=$(ls -1 "$PACKAGES_DIR"/*.deb 2>/dev/null | wc -l)
-    echo -e "${GREEN}✓ Found $PKG_COUNT .deb packages${NC}"
-    SKIP_PACKAGES=false
-fi
 echo ""
 
 # Detect OS
@@ -179,7 +156,7 @@ fi
 
 echo ""
 
-# Copy packages
+# Copy files
 echo "========================================="
 echo "Step 3: Copy TurnoTec Files"
 echo "========================================="
@@ -190,18 +167,6 @@ echo "Creating directories..."
 mkdir -p "$ROOTFS_MOUNT/opt/turnotec/"{scripts,web/templates,web/static}
 mkdir -p "$ROOTFS_MOUNT/opt/turnotec-installer"
 mkdir -p "$ROOTFS_MOUNT/var/log/turnotec"
-
-# Copy .deb packages
-if [ "$SKIP_PACKAGES" = false ]; then
-    echo "Copying .deb packages..."
-    mkdir -p "$ROOTFS_MOUNT/opt/turnotec-installer/packages"
-    cp "$PACKAGES_DIR"/*.deb "$ROOTFS_MOUNT/opt/turnotec-installer/packages/"
-
-    PKG_COPIED=$(ls -1 "$ROOTFS_MOUNT/opt/turnotec-installer/packages"/*.deb 2>/dev/null | wc -l)
-    echo -e "${GREEN}✓ Copied $PKG_COPIED .deb packages${NC}"
-else
-    echo -e "${YELLOW}⚠ Skipping package copy (no packages found)${NC}"
-fi
 
 # Copy all device files to installer directory
 echo "Copying installation files..."
@@ -219,12 +184,8 @@ echo "========================================="
 echo ""
 
 # Copy fullpageos.txt to boot partition
-echo "Copying FullPageOS configuration..."
-cat > "$BOOT_MOUNT/fullpageos.txt" <<EOF
-# TurnoTec FullPageOS Configuration
-# This will be updated after device configuration
-file:///opt/turnotec/web/templates/instructions.html
-EOF
+echo "Configuring FullPageOS..."
+echo "file:///opt/turnotec/web/templates/instructions.html" > "$BOOT_MOUNT/fullpageos.txt"
 
 echo -e "${GREEN}✓ FullPageOS config created${NC}"
 
@@ -245,7 +206,6 @@ cat > "$ROOTFS_MOUNT/opt/turnotec-installer/first_boot_install.sh" <<'FIRSTBOOT'
 #!/bin/bash
 ###############################################################################
 # TurnoTec - First Boot Installation Script
-# Executed automatically on first boot to install TurnoTec system
 ###############################################################################
 
 LOGFILE="/var/log/turnotec-first-boot.log"
@@ -258,33 +218,32 @@ log "========================================="
 log "TurnoTec First Boot Installation Started"
 log "========================================="
 
-# Wait for filesystem to be ready
-sleep 5
+# Wait for network
+log "Waiting for network (30 seconds)..."
+sleep 30
 
 # Run the main installation script
 cd /opt/turnotec-installer
 
 log "Running installation script..."
-bash ./install.sh --auto-confirm 2>&1 | tee -a "$LOGFILE"
-
-if [ $? -eq 0 ]; then
+if bash ./install.sh --auto-confirm 2>&1 | tee -a "$LOGFILE"; then
     log "✓ Installation completed successfully"
 
-    # Remove installer files to save space
+    # Remove installer files
     log "Cleaning up installer files..."
     rm -rf /opt/turnotec-installer
 
-    # Remove this script from rc.local
-    log "Removing first-boot script from startup..."
-    sed -i '/turnotec-installer\/first_boot_install.sh/d' /etc/rc.local
+    # Disable this service
+    log "Disabling first-boot service..."
+    systemctl disable turnotec-firstboot.service
 
     log "========================================="
     log "TurnoTec Installation Complete!"
-    log "System will continue normal boot..."
     log "========================================="
 else
     log "ERROR: Installation failed!"
-    log "Installer files kept in /opt/turnotec-installer for debugging"
+    log "Keeping installer files for debugging"
+    log "Check /var/log/turnotec-first-boot.log for details"
 fi
 
 exit 0
@@ -295,49 +254,24 @@ chmod +x "$ROOTFS_MOUNT/opt/turnotec-installer/first_boot_install.sh"
 echo -e "${GREEN}✓ First-boot installer created${NC}"
 echo ""
 
-# Configure rc.local for first boot
+# Install systemd service
 echo "========================================="
-echo "Step 6: Configure First Boot Execution"
+echo "Step 6: Install First-Boot Service"
 echo "========================================="
 echo ""
 
-# Check if rc.local exists
-if [ ! -f "$ROOTFS_MOUNT/etc/rc.local" ]; then
-    echo "Creating /etc/rc.local..."
-    cat > "$ROOTFS_MOUNT/etc/rc.local" <<'RCLOCAL'
-#!/bin/bash
-# rc.local - executed at the end of each multiuser runlevel
+# Copy systemd service
+cp "$SCRIPT_DIR/setup/systemd/turnotec-firstboot.service" "$ROOTFS_MOUNT/etc/systemd/system/"
 
-exit 0
-RCLOCAL
-    chmod +x "$ROOTFS_MOUNT/etc/rc.local"
-fi
+# Enable service (create symlink)
+mkdir -p "$ROOTFS_MOUNT/etc/systemd/system/multi-user.target.wants"
+ln -sf /etc/systemd/system/turnotec-firstboot.service \
+    "$ROOTFS_MOUNT/etc/systemd/system/multi-user.target.wants/turnotec-firstboot.service"
 
-# Add first-boot script to rc.local (before exit 0)
-if ! grep -q "turnotec-installer/first_boot_install.sh" "$ROOTFS_MOUNT/etc/rc.local"; then
-    echo "Adding TurnoTec first-boot installation to rc.local..."
-
-    # Remove existing exit 0
-    sed -i '/^exit 0/d' "$ROOTFS_MOUNT/etc/rc.local"
-
-    # Add our script and exit 0
-    cat >> "$ROOTFS_MOUNT/etc/rc.local" <<'RCADD'
-
-# TurnoTec First Boot Installation (auto-removes after execution)
-if [ -f /opt/turnotec-installer/first_boot_install.sh ]; then
-    /opt/turnotec-installer/first_boot_install.sh &
-fi
-
-exit 0
-RCADD
-
-    chmod +x "$ROOTFS_MOUNT/etc/rc.local"
-fi
-
-echo -e "${GREEN}✓ First-boot execution configured in rc.local${NC}"
+echo -e "${GREEN}✓ First-boot service installed and enabled${NC}"
 echo ""
 
-# Create installation marker file with boot path info
+# Create installation info
 echo "========================================="
 echo "Step 7: Create Installation Info"
 echo "========================================="
@@ -349,22 +283,25 @@ TurnoTec SD Card Preparation
 
 Prepared on: $(date)
 Prepared by: $(whoami)@$(hostname)
-Script version: 2.0.0
+Script version: 3.0.0
 FullPageOS boot path: $FULLPAGEOS_BOOT_PATH
 
 This SD card has been prepared with TurnoTec system.
 
 On first boot, the Raspberry Pi will:
-1. Run the TurnoTec installation script automatically
-2. Install all required packages from offline .deb files
-3. Configure systemd services
-4. Activate the hotspot "TurnoTec"
-5. Show configuration instructions on the display
+1. Wait 30 seconds for network
+2. Run the TurnoTec installation script automatically
+3. Install all required packages via apt-get (REQUIRES ETHERNET!)
+4. Configure systemd services
+5. Activate the hotspot "TurnoTec"
+6. Show configuration instructions on the display
 
-Expected first boot time: 3-5 minutes (offline installation)
+IMPORTANT: CONNECT ETHERNET CABLE BEFORE FIRST BOOT!
+
+Expected first boot time: 8-12 minutes
 After first boot, the display will show instructions for configuration.
 
-Installation log will be available at: /var/log/turnotec-first-boot.log
+Installation log: /var/log/turnotec-first-boot.log
 
 FullPageOS Configuration:
 - Boot path: $FULLPAGEOS_BOOT_PATH
@@ -405,23 +342,17 @@ echo ""
 echo "Summary:"
 echo "--------"
 echo "  Boot path detected: $FULLPAGEOS_BOOT_PATH"
-if [ "$SKIP_PACKAGES" = false ]; then
-    echo "  Packages copied: $PKG_COPIED .deb files"
-else
-    echo "  Packages: SKIPPED (will need internet on first boot)"
-fi
-echo "  Installation: Configured for automatic first-boot"
+echo "  Installation method: Online (apt-get)"
+echo "  First-boot service: Enabled"
+echo ""
+echo -e "${RED}⚠️  IMPORTANT: CONNECT ETHERNET CABLE BEFORE FIRST BOOT!${NC}"
 echo ""
 echo "Next steps:"
 echo "1. Remove the SD card from your PC"
 echo "2. Insert it into the Raspberry Pi Zero 2 W"
-echo "3. Connect HDMI display and power"
-if [ "$SKIP_PACKAGES" = false ]; then
-    echo "4. Wait 3-5 minutes for first boot installation (offline)"
-else
-    echo "4. ENSURE ETHERNET IS CONNECTED (needed to download packages)"
-    echo "5. Wait 8-12 minutes for first boot installation (online)"
-fi
+echo "3. ${RED}CONNECT ETHERNET CABLE${NC}"
+echo "4. Connect HDMI display and power"
+echo "5. Wait 8-12 minutes for first boot installation"
 echo "6. The display will show configuration instructions"
 echo "7. Connect smartphone to hotspot 'TurnoTec' (password: Bacheca2025)"
 echo "8. Visit http://192.168.4.1 to configure"

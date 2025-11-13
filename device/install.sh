@@ -60,71 +60,44 @@ else
 fi
 echo ""
 
-# Check for offline packages
-PACKAGES_DIR="$SCRIPT_DIR/packages"
-OFFLINE_INSTALL=false
-
-if [ -d "$PACKAGES_DIR" ] && [ -n "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
-    PKG_COUNT=$(ls -1 "$PACKAGES_DIR"/*.deb 2>/dev/null | wc -l)
-    echo "✓ Found $PKG_COUNT offline .deb packages"
-    OFFLINE_INSTALL=true
-else
-    echo "⚠ No offline packages found - will use apt-get (requires internet)"
-    OFFLINE_INSTALL=false
+# Check internet connectivity
+echo "Checking internet connectivity..."
+if ! ping -c 1 -W 5 8.8.8.8 &> /dev/null; then
+    echo "ERROR: No internet connection!"
+    echo ""
+    echo "Please ensure:"
+    echo "  1. Ethernet cable is connected"
+    echo "  2. Network has internet access"
+    echo ""
+    echo "Aborting installation."
+    exit 1
 fi
+echo "✓ Internet connection OK"
 echo ""
 
 # Install required packages
 echo "[1/8] Installing required packages..."
+echo "This may take 5-10 minutes depending on network speed..."
 
-if [ "$OFFLINE_INSTALL" = true ]; then
-    echo "Installing from offline .deb packages..."
+# Update package lists
+apt-get update -qq
 
-    # Install packages with dpkg
-    cd "$PACKAGES_DIR"
-
-    # First pass: try to install all packages
-    dpkg -i *.deb 2>/dev/null || true
-
-    # Fix dependencies
-    echo "Fixing dependencies..."
-    apt-get install -f -y --no-install-recommends
-
-    # Second pass: install any remaining packages
-    dpkg -i *.deb 2>/dev/null || true
-
-    echo "✓ Offline packages installed"
-else
-    echo "Downloading and installing packages..."
-
-    # Ensure we have network before attempting
-    if ! ping -c 1 8.8.8.8 &> /dev/null; then
-        echo "ERROR: No internet connection available"
-        echo "Either:"
-        echo "  1. Connect Ethernet cable"
-        echo "  2. Or use offline package installation (download packages first)"
-        exit 1
-    fi
-
-    apt-get update -qq
-    apt-get install -y \
-        hostapd \
-        dnsmasq \
-        python3-flask \
-        python3-pip \
-        jq \
-        wireless-tools \
-        iw \
-        curl \
-        net-tools
-
-    echo "✓ Packages installed from repositories"
-fi
+# Install packages
+apt-get install -y --no-install-recommends \
+    hostapd \
+    dnsmasq \
+    python3-flask \
+    jq \
+    wireless-tools \
+    iw \
+    curl \
+    net-tools
 
 # Ensure dnsmasq and hostapd are stopped and disabled by default
 systemctl stop dnsmasq hostapd 2>/dev/null || true
 systemctl disable dnsmasq hostapd 2>/dev/null || true
 
+echo "✓ Packages installed"
 echo ""
 
 # Create directory structure
@@ -152,7 +125,7 @@ echo ""
 
 # Copy systemd services
 echo "[5/8] Installing systemd services..."
-cp "$SCRIPT_DIR/setup/systemd/"*.service /etc/systemd/system/
+cp "$SCRIPT_DIR/setup/systemd/turnotec-"*.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable turnotec-hotspot.service
 systemctl enable turnotec-monitor.service
@@ -164,8 +137,8 @@ echo "[6/8] Configuring FullPageOS..."
 
 # Configure initial display page in fullpageos.txt
 if [ -f "$BOOT_PATH/fullpageos.txt" ]; then
-    echo "Updating existing fullpageos.txt..."
-    sed -i "s|^.*$|file:///opt/turnotec/web/templates/instructions.html|" "$BOOT_PATH/fullpageos.txt"
+    echo "Updating fullpageos.txt..."
+    echo "file:///opt/turnotec/web/templates/instructions.html" > "$BOOT_PATH/fullpageos.txt"
 else
     echo "Creating fullpageos.txt..."
     echo "file:///opt/turnotec/web/templates/instructions.html" > "$BOOT_PATH/fullpageos.txt"
@@ -174,13 +147,8 @@ fi
 echo "✓ FullPageOS configured (boot path: $BOOT_PATH)"
 echo ""
 
-# Configure initial display page
-echo "[7/8] Configuring initial display page..."
-echo "✓ Initial display page configured"
-echo ""
-
 # Set permissions
-echo "[8/8] Setting permissions..."
+echo "[7/8] Setting permissions..."
 chown -R root:root /opt/turnotec
 chmod -R 755 /opt/turnotec/scripts
 chmod 644 /opt/turnotec/web/app.py
@@ -188,16 +156,17 @@ echo "✓ Permissions set"
 echo ""
 
 # Create initial state
-echo "Creating initial state..."
+echo "[8/8] Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "configured": false,
-  "offline_install": $OFFLINE_INSTALL,
   "boot_path": "$BOOT_PATH"
 }
 EOF
+echo "✓ State file created"
+echo ""
 
 echo "========================================="
 echo "Installation completed successfully!"
@@ -205,18 +174,16 @@ echo "========================================="
 echo ""
 echo "Installation Summary:"
 echo "---------------------"
-echo "  Installation method: $([ "$OFFLINE_INSTALL" = true ] && echo "Offline (.deb packages)" || echo "Online (apt-get)")"
 echo "  FullPageOS boot path: $BOOT_PATH"
 echo "  Systemd services: turnotec-hotspot, turnotec-monitor"
+echo "  Configuration file: $BOOT_PATH/fullpageos.txt"
 echo ""
 echo "Next steps:"
-echo "1. Reboot the device: sudo reboot"
-echo "2. The device will show configuration instructions on screen"
-echo "3. Connect your smartphone to WiFi: TurnoTec"
-echo "4. Visit http://192.168.4.1 from your smartphone"
+echo "1. System will reboot automatically"
+echo "2. The display will show configuration instructions"
+echo "3. Connect smartphone to WiFi: TurnoTec (password: Bacheca2025)"
+echo "4. Visit http://192.168.4.1 from smartphone"
 echo "5. Complete the configuration form"
-echo ""
-echo "The device will automatically reboot and display the configured page."
 echo ""
 
 if [ "$AUTO_CONFIRM" = false ]; then
@@ -227,9 +194,10 @@ if [ "$AUTO_CONFIRM" = false ]; then
         sleep 3
         reboot
     else
-        echo "Please reboot manually when ready: sudo reboot"
+        echo "Please reboot manually: sudo reboot"
     fi
 else
-    echo "Auto-confirm mode: skipping reboot prompt"
-    echo "System will reboot on next scheduled reboot"
+    echo "Auto-confirm mode: rebooting in 5 seconds..."
+    sleep 5
+    reboot
 fi

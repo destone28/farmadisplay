@@ -1,7 +1,3 @@
-# Exclude downloaded .deb packages
+# No offline packages (feature removed)
 packages/
 *.deb
-
-# Exclude package lists
-packages.list
-verify_packages.sh
