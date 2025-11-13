@@ -100,8 +100,8 @@ async def create_user(
             )
 
     # Hash password
-    auth_service = AuthenticationService(db)
-    password_hash = auth_service.hash_password(user_in.password)
+    auth_service = AuthenticationService()
+    password_hash = auth_service.get_password_hash(user_in.password)
 
     # Create user
     user_data = user_in.dict(exclude={"password"})
