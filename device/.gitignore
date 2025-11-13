@@ -1,0 +1,7 @@
+# Exclude downloaded .deb packages
+packages/
+*.deb
+
+# Exclude package lists
+packages.list
+verify_packages.sh

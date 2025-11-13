@@ -2,6 +2,7 @@
 ###############################################################################
 # TurnoTec - SD Card Preparation Script (Linux/Mac)
 # Prepares a FullPageOS SD card with TurnoTec system from PC
+# For Ubuntu 24.04 LTS and compatible systems
 ###############################################################################
 
 set -e
@@ -26,7 +27,31 @@ fi
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGES_DIR="$SCRIPT_DIR/packages"
+
 echo -e "${GREEN}Script directory: $SCRIPT_DIR${NC}"
+echo ""
+
+# Check if packages are downloaded
+if [ ! -d "$PACKAGES_DIR" ] || [ -z "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
+    echo -e "${YELLOW}⚠ WARNING: No .deb packages found!${NC}"
+    echo ""
+    echo "You need to download packages first:"
+    echo "  cd $SCRIPT_DIR"
+    echo "  chmod +x download_packages.sh"
+    echo "  ./download_packages.sh"
+    echo ""
+    read -p "Continue without packages? (yes/no): " CONFIRM
+    if [ "$CONFIRM" != "yes" ]; then
+        echo "Aborted. Please download packages first."
+        exit 1
+    fi
+    SKIP_PACKAGES=true
+else
+    PKG_COUNT=$(ls -1 "$PACKAGES_DIR"/*.deb 2>/dev/null | wc -l)
+    echo -e "${GREEN}✓ Found $PKG_COUNT .deb packages${NC}"
+    SKIP_PACKAGES=false
+fi
 echo ""
 
 # Detect OS
@@ -47,7 +72,7 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     echo ""
     read -p "Enter SD card device (e.g., disk2): " SD_DEVICE
     SD_DEVICE="/dev/${SD_DEVICE}"
-    BOOT_MOUNT="/Volumes/boot"
+    BOOT_MOUNT="/Volumes/bootfs"
     ROOTFS_MOUNT="/Volumes/rootfs"
 else
     # Linux
@@ -91,7 +116,13 @@ if [ "$OS_TYPE" = "Darwin" ]; then
     echo "Please wait while macOS mounts the partitions..."
     sleep 3
 
-    # Check if mounted
+    # Check if mounted (try both names)
+    if [ -d "/Volumes/bootfs" ]; then
+        BOOT_MOUNT="/Volumes/bootfs"
+    elif [ -d "/Volumes/boot" ]; then
+        BOOT_MOUNT="/Volumes/boot"
+    fi
+
     if [ ! -d "$BOOT_MOUNT" ] || [ ! -d "$ROOTFS_MOUNT" ]; then
         echo -e "${RED}ERROR: Partitions not auto-mounted${NC}"
         echo "Trying manual mount..."
@@ -133,9 +164,22 @@ if [ ! -f "$ROOTFS_MOUNT/etc/os-release" ]; then
 fi
 
 echo -e "${GREEN}✓ Valid Linux filesystem detected${NC}"
+
+# Detect FullPageOS boot path (/boot vs /boot/firmware)
+echo ""
+echo "Detecting FullPageOS version..."
+
+FULLPAGEOS_BOOT_PATH="/boot"
+if [ -d "$ROOTFS_MOUNT/boot/firmware" ]; then
+    FULLPAGEOS_BOOT_PATH="/boot/firmware"
+    echo -e "${GREEN}✓ Detected FullPageOS with /boot/firmware (Bookworm+)${NC}"
+else
+    echo -e "${GREEN}✓ Detected FullPageOS with /boot (Legacy)${NC}"
+fi
+
 echo ""
 
-# Copy files
+# Copy packages
 echo "========================================="
 echo "Step 3: Copy TurnoTec Files"
 echo "========================================="
@@ -147,6 +191,18 @@ mkdir -p "$ROOTFS_MOUNT/opt/turnotec/"{scripts,web/templates,web/static}
 mkdir -p "$ROOTFS_MOUNT/opt/turnotec-installer"
 mkdir -p "$ROOTFS_MOUNT/var/log/turnotec"
 
+# Copy .deb packages
+if [ "$SKIP_PACKAGES" = false ]; then
+    echo "Copying .deb packages..."
+    mkdir -p "$ROOTFS_MOUNT/opt/turnotec-installer/packages"
+    cp "$PACKAGES_DIR"/*.deb "$ROOTFS_MOUNT/opt/turnotec-installer/packages/"
+
+    PKG_COPIED=$(ls -1 "$ROOTFS_MOUNT/opt/turnotec-installer/packages"/*.deb 2>/dev/null | wc -l)
+    echo -e "${GREEN}✓ Copied $PKG_COPIED .deb packages${NC}"
+else
+    echo -e "${YELLOW}⚠ Skipping package copy (no packages found)${NC}"
+fi
+
 # Copy all device files to installer directory
 echo "Copying installation files..."
 cp -r "$SCRIPT_DIR/setup" "$ROOTFS_MOUNT/opt/turnotec-installer/"
@@ -156,24 +212,32 @@ cp "$SCRIPT_DIR/install.sh" "$ROOTFS_MOUNT/opt/turnotec-installer/"
 echo -e "${GREEN}✓ Files copied to /opt/turnotec-installer/${NC}"
 echo ""
 
-# Copy Chromium flags to boot partition
-echo "Copying Chromium flags to boot partition..."
-cp "$SCRIPT_DIR/config/chromium-flags.txt" "$BOOT_MOUNT/" 2>/dev/null || {
-    echo -e "${YELLOW}⚠ Could not copy chromium-flags.txt to boot (will be done at first boot)${NC}"
-}
+# Configure boot partition
+echo "========================================="
+echo "Step 4: Configure Boot Partition"
+echo "========================================="
+echo ""
 
-# Copy FullPageOS config template to boot partition
+# Copy fullpageos.txt to boot partition
 echo "Copying FullPageOS configuration..."
-cp "$SCRIPT_DIR/config/fullpageos-template.txt" "$BOOT_MOUNT/fullpageos.txt" 2>/dev/null || {
-    echo -e "${YELLOW}⚠ Could not copy fullpageos.txt to boot (will be done at first boot)${NC}"
-}
+cat > "$BOOT_MOUNT/fullpageos.txt" <<EOF
+# TurnoTec FullPageOS Configuration
+# This will be updated after device configuration
+file:///opt/turnotec/web/templates/instructions.html
+EOF
 
-echo -e "${GREEN}✓ Boot partition configured${NC}"
+echo -e "${GREEN}✓ FullPageOS config created${NC}"
+
+# Enable SSH
+echo "Enabling SSH..."
+touch "$BOOT_MOUNT/ssh"
+echo -e "${GREEN}✓ SSH enabled${NC}"
+
 echo ""
 
 # Create first-boot installation script
 echo "========================================="
-echo "Step 4: Create First-Boot Installer"
+echo "Step 5: Create First-Boot Installer"
 echo "========================================="
 echo ""
 
@@ -194,8 +258,8 @@ log "========================================="
 log "TurnoTec First Boot Installation Started"
 log "========================================="
 
-# Wait for network to be ready (not critical, but helpful)
-sleep 10
+# Wait for filesystem to be ready
+sleep 5
 
 # Run the main installation script
 cd /opt/turnotec-installer
@@ -231,13 +295,9 @@ chmod +x "$ROOTFS_MOUNT/opt/turnotec-installer/first_boot_install.sh"
 echo -e "${GREEN}✓ First-boot installer created${NC}"
 echo ""
 
-# Modify install.sh to support auto-confirm
-echo "Modifying install.sh for automated installation..."
-sed -i.bak 's/read -p "Reboot now? (Y\/n)"/# Auto-confirm mode\nif [ "$1" != "--auto-confirm" ]; then\n    read -p "Reboot now? (Y\/n)"/' "$ROOTFS_MOUNT/opt/turnotec-installer/install.sh" 2>/dev/null || true
-
 # Configure rc.local for first boot
 echo "========================================="
-echo "Step 5: Configure First Boot Execution"
+echo "Step 6: Configure First Boot Execution"
 echo "========================================="
 echo ""
 
@@ -277,17 +337,7 @@ fi
 echo -e "${GREEN}✓ First-boot execution configured in rc.local${NC}"
 echo ""
 
-# Enable SSH (if not already)
-echo "========================================="
-echo "Step 6: Enable SSH"
-echo "========================================="
-echo ""
-
-touch "$BOOT_MOUNT/ssh"
-echo -e "${GREEN}✓ SSH enabled${NC}"
-echo ""
-
-# Create installation marker file
+# Create installation marker file with boot path info
 echo "========================================="
 echo "Step 7: Create Installation Info"
 echo "========================================="
@@ -299,22 +349,31 @@ TurnoTec SD Card Preparation
 
 Prepared on: $(date)
 Prepared by: $(whoami)@$(hostname)
-Script version: 1.0.0
+Script version: 2.0.0
+FullPageOS boot path: $FULLPAGEOS_BOOT_PATH
 
 This SD card has been prepared with TurnoTec system.
 
 On first boot, the Raspberry Pi will:
 1. Run the TurnoTec installation script automatically
-2. Install all required packages (hostapd, dnsmasq, Flask, etc.)
+2. Install all required packages from offline .deb files
 3. Configure systemd services
 4. Activate the hotspot "TurnoTec"
 5. Show configuration instructions on the display
 
-Expected first boot time: 5-10 minutes
+Expected first boot time: 3-5 minutes (offline installation)
 After first boot, the display will show instructions for configuration.
 
 Installation log will be available at: /var/log/turnotec-first-boot.log
+
+FullPageOS Configuration:
+- Boot path: $FULLPAGEOS_BOOT_PATH
+- Config file: $FULLPAGEOS_BOOT_PATH/fullpageos.txt
+- URL script: /opt/custompios/scripts/get_url
 INSTALLINFO
+
+# Store boot path for install script
+echo "$FULLPAGEOS_BOOT_PATH" > "$ROOTFS_MOUNT/opt/turnotec-installer/boot_path.txt"
 
 echo -e "${GREEN}✓ Installation info created${NC}"
 echo ""
@@ -343,14 +402,29 @@ echo "========================================="
 echo -e "${GREEN}✓ SD Card Preparation COMPLETE!${NC}"
 echo "========================================="
 echo ""
+echo "Summary:"
+echo "--------"
+echo "  Boot path detected: $FULLPAGEOS_BOOT_PATH"
+if [ "$SKIP_PACKAGES" = false ]; then
+    echo "  Packages copied: $PKG_COPIED .deb files"
+else
+    echo "  Packages: SKIPPED (will need internet on first boot)"
+fi
+echo "  Installation: Configured for automatic first-boot"
+echo ""
 echo "Next steps:"
 echo "1. Remove the SD card from your PC"
 echo "2. Insert it into the Raspberry Pi Zero 2 W"
 echo "3. Connect HDMI display and power"
-echo "4. Wait 5-10 minutes for first boot installation"
-echo "5. The display will show configuration instructions"
-echo "6. Connect smartphone to hotspot 'TurnoTec' (password: Bacheca2025)"
-echo "7. Visit http://192.168.4.1 to configure"
+if [ "$SKIP_PACKAGES" = false ]; then
+    echo "4. Wait 3-5 minutes for first boot installation (offline)"
+else
+    echo "4. ENSURE ETHERNET IS CONNECTED (needed to download packages)"
+    echo "5. Wait 8-12 minutes for first boot installation (online)"
+fi
+echo "6. The display will show configuration instructions"
+echo "7. Connect smartphone to hotspot 'TurnoTec' (password: Bacheca2025)"
+echo "8. Visit http://192.168.4.1 to configure"
 echo ""
 echo -e "${GREEN}The SD card is ready to use!${NC}"
 echo ""

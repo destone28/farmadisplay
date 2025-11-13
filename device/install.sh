@@ -47,25 +47,84 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "Installation directory: $SCRIPT_DIR"
 echo ""
 
+# Detect FullPageOS boot path
+BOOT_PATH="/boot"
+if [ -f "$SCRIPT_DIR/boot_path.txt" ]; then
+    BOOT_PATH=$(cat "$SCRIPT_DIR/boot_path.txt")
+    echo "Using detected boot path: $BOOT_PATH"
+elif [ -d "/boot/firmware" ]; then
+    BOOT_PATH="/boot/firmware"
+    echo "Detected boot path: $BOOT_PATH (Bookworm+)"
+else
+    echo "Using default boot path: $BOOT_PATH (Legacy)"
+fi
+echo ""
+
+# Check for offline packages
+PACKAGES_DIR="$SCRIPT_DIR/packages"
+OFFLINE_INSTALL=false
+
+if [ -d "$PACKAGES_DIR" ] && [ -n "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
+    PKG_COUNT=$(ls -1 "$PACKAGES_DIR"/*.deb 2>/dev/null | wc -l)
+    echo "✓ Found $PKG_COUNT offline .deb packages"
+    OFFLINE_INSTALL=true
+else
+    echo "⚠ No offline packages found - will use apt-get (requires internet)"
+    OFFLINE_INSTALL=false
+fi
+echo ""
+
 # Install required packages
 echo "[1/8] Installing required packages..."
-apt-get update -qq
-apt-get install -y \
-    hostapd \
-    dnsmasq \
-    python3-flask \
-    python3-pip \
-    jq \
-    wireless-tools \
-    iw \
-    curl \
-    net-tools
+
+if [ "$OFFLINE_INSTALL" = true ]; then
+    echo "Installing from offline .deb packages..."
+
+    # Install packages with dpkg
+    cd "$PACKAGES_DIR"
+
+    # First pass: try to install all packages
+    dpkg -i *.deb 2>/dev/null || true
+
+    # Fix dependencies
+    echo "Fixing dependencies..."
+    apt-get install -f -y --no-install-recommends
+
+    # Second pass: install any remaining packages
+    dpkg -i *.deb 2>/dev/null || true
+
+    echo "✓ Offline packages installed"
+else
+    echo "Downloading and installing packages..."
+
+    # Ensure we have network before attempting
+    if ! ping -c 1 8.8.8.8 &> /dev/null; then
+        echo "ERROR: No internet connection available"
+        echo "Either:"
+        echo "  1. Connect Ethernet cable"
+        echo "  2. Or use offline package installation (download packages first)"
+        exit 1
+    fi
+
+    apt-get update -qq
+    apt-get install -y \
+        hostapd \
+        dnsmasq \
+        python3-flask \
+        python3-pip \
+        jq \
+        wireless-tools \
+        iw \
+        curl \
+        net-tools
+
+    echo "✓ Packages installed from repositories"
+fi
 
 # Ensure dnsmasq and hostapd are stopped and disabled by default
 systemctl stop dnsmasq hostapd 2>/dev/null || true
 systemctl disable dnsmasq hostapd 2>/dev/null || true
 
-echo "✓ Packages installed"
 echo ""
 
 # Create directory structure
@@ -100,32 +159,23 @@ systemctl enable turnotec-monitor.service
 echo "✓ Systemd services installed"
 echo ""
 
-# Configure Chromium flags
-echo "[6/8] Configuring Chromium..."
+# Configure FullPageOS
+echo "[6/8] Configuring FullPageOS..."
 
-# Copy chromium flags to boot partition
-if [ -d /boot ]; then
-    cp "$SCRIPT_DIR/config/chromium-flags.txt" /boot/
-    echo "✓ Chromium flags copied to /boot/"
+# Configure initial display page in fullpageos.txt
+if [ -f "$BOOT_PATH/fullpageos.txt" ]; then
+    echo "Updating existing fullpageos.txt..."
+    sed -i "s|^.*$|file:///opt/turnotec/web/templates/instructions.html|" "$BOOT_PATH/fullpageos.txt"
 else
-    echo "⚠ WARNING: /boot directory not found, skipping chromium-flags.txt"
+    echo "Creating fullpageos.txt..."
+    echo "file:///opt/turnotec/web/templates/instructions.html" > "$BOOT_PATH/fullpageos.txt"
 fi
 
-# Copy FullPageOS template
-cp "$SCRIPT_DIR/config/fullpageos-template.txt" /boot/fullpageos.txt 2>/dev/null || \
-    echo "⚠ WARNING: Could not copy fullpageos.txt to /boot"
-
-echo "✓ Chromium configured"
+echo "✓ FullPageOS configured (boot path: $BOOT_PATH)"
 echo ""
 
 # Configure initial display page
 echo "[7/8] Configuring initial display page..."
-
-# Ensure instructions.html is served initially
-if [ -f /boot/fullpageos.txt ]; then
-    sed -i 's|^FULLPAGEOS_URL=.*|FULLPAGEOS_URL=file:///opt/turnotec/web/templates/instructions.html|' /boot/fullpageos.txt
-fi
-
 echo "✓ Initial display page configured"
 echo ""
 
@@ -142,14 +192,22 @@ echo "Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "1.0.0",
-  "configured": false
+  "version": "2.0.0",
+  "configured": false,
+  "offline_install": $OFFLINE_INSTALL,
+  "boot_path": "$BOOT_PATH"
 }
 EOF
 
 echo "========================================="
 echo "Installation completed successfully!"
 echo "========================================="
+echo ""
+echo "Installation Summary:"
+echo "---------------------"
+echo "  Installation method: $([ "$OFFLINE_INSTALL" = true ] && echo "Offline (.deb packages)" || echo "Online (apt-get)")"
+echo "  FullPageOS boot path: $BOOT_PATH"
+echo "  Systemd services: turnotec-hotspot, turnotec-monitor"
 echo ""
 echo "Next steps:"
 echo "1. Reboot the device: sudo reboot"

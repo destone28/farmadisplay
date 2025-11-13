@@ -8,9 +8,19 @@ set -e
 
 # Configuration
 CONFIG_FILE="/opt/turnotec/config.json"
-FULLPAGEOS_CONFIG="/boot/fullpageos.txt"
+STATE_FILE="/opt/turnotec/state.json"
 WPA_SUPPLICANT="/etc/wpa_supplicant/wpa_supplicant.conf"
 LOG_FILE="/var/log/turnotec-configure.log"
+
+# Detect FullPageOS boot path
+BOOT_PATH="/boot"
+if [ -f "$STATE_FILE" ]; then
+    BOOT_PATH=$(jq -r '.boot_path // "/boot"' "$STATE_FILE")
+elif [ -d "/boot/firmware" ]; then
+    BOOT_PATH="/boot/firmware"
+fi
+
+FULLPAGEOS_CONFIG="$BOOT_PATH/fullpageos.txt"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
@@ -77,6 +87,7 @@ fi
 
 # Configure FullPageOS display URL
 log "Configuring FullPageOS display URL..."
+log "Boot path: $BOOT_PATH"
 
 DISPLAY_URL="https://${DOMAIN}/display/${DISPLAY_ID}"
 log "Display URL: $DISPLAY_URL"
@@ -86,26 +97,11 @@ if [ -f "$FULLPAGEOS_CONFIG" ]; then
     cp "$FULLPAGEOS_CONFIG" "${FULLPAGEOS_CONFIG}.backup.$(date +%s)"
 fi
 
-# Update or create fullpageos.txt
-if [ -f "$FULLPAGEOS_CONFIG" ]; then
-    # Update existing file
-    sed -i "s|^FULLPAGEOS_URL=.*|FULLPAGEOS_URL=${DISPLAY_URL}|" "$FULLPAGEOS_CONFIG"
+# FullPageOS reads only the first line of fullpageos.txt as the URL
+# No need for FULLPAGEOS_URL= prefix - just the URL
+echo "$DISPLAY_URL" > "$FULLPAGEOS_CONFIG"
 
-    # Add if not exists
-    if ! grep -q "^FULLPAGEOS_URL=" "$FULLPAGEOS_CONFIG"; then
-        echo "FULLPAGEOS_URL=${DISPLAY_URL}" >> "$FULLPAGEOS_CONFIG"
-    fi
-else
-    # Create new file
-    cat > "$FULLPAGEOS_CONFIG" <<EOF
-# TurnoTec FullPageOS Configuration
-FULLPAGEOS_URL=${DISPLAY_URL}
-FULLPAGEOS_HIDE_CURSOR=yes
-FULLPAGEOS_ROTATE_DISPLAY=normal
-EOF
-fi
-
-log "FullPageOS configuration saved"
+log "FullPageOS configuration saved to $FULLPAGEOS_CONFIG"
 
 # Mark as configured
 jq '.configured = true | .configured_at = "'$(date -Iseconds)'"' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp"
