@@ -39,7 +39,7 @@ const userUpdateSchema = z.object({
   postal_code: z.string().max(10, 'CAP troppo lungo').optional().or(z.literal('')),
   address: z.string().max(500, 'Indirizzo troppo lungo').optional().or(z.literal('')),
   role: z.enum(['admin', 'user']).optional(),
-  is_active: z.boolean().optional(),
+  is_active: z.union([z.boolean(), z.string()]).optional(),
 })
 
 interface UserDialogProps {
