@@ -271,18 +271,24 @@ export const PublicDisplayPage: React.FC = () => {
                       </h3>
                       <p className="text-sm opacity-75 mt-0.5" style={{ color: colors.text }}>
                         📍 {pharmacy.address}, {(() => {
-                          // Parse postal_code which contains both CAP and city (e.g., "73043COPERTINO")
-                          const postalCodeStr = pharmacy.postal_code || '';
-                          const match = postalCodeStr.match(/^(\d+)(.*)$/);
-                          if (match) {
+                          // Display postal code and city (backend provides them separately)
+                          const postalCode = pharmacy.postal_code || '';
+                          const city = pharmacy.city || '';
+                          const province = pharmacy.province ? ` (${pharmacy.province})` : '';
+
+                          // If we have both postal code and city, display them properly
+                          if (postalCode && city) {
+                            return `${postalCode} ${city}${province}`;
+                          }
+                          // If postal code contains both CAP and city concatenated (legacy format)
+                          const match = postalCode.match(/^(\d+)(.+)$/);
+                          if (match && !city) {
                             const cap = match[1];
                             const cityFromPostal = match[2];
-                            // Use cityFromPostal if city field is empty, otherwise use city field
-                            const cityName = pharmacy.city || cityFromPostal;
-                            return `${cap} - ${cityName}${pharmacy.province ? ` (${pharmacy.province})` : ''}`;
+                            return `${cap} ${cityFromPostal}${province}`;
                           }
-                          // Fallback to original format if parsing fails
-                          return `${postalCodeStr} - ${pharmacy.city}${pharmacy.province ? ` (${pharmacy.province})` : ''}`;
+                          // Fallback
+                          return `${postalCode} ${city}${province}`.trim();
                         })()}
                         {pharmacy.distance_km && <span className="ml-1.5">• {pharmacy.distance_km} km</span>}
                       </p>
