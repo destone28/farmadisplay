@@ -68,7 +68,7 @@
             attempts++;
             document.getElementById('status').textContent = `Tentativo ${attempts}/${maxAttempts}...`;
 
-            fetch('http://192.168.4.1/', {
+            fetch('http://192.168.4.1:8080/', {
                 method: 'HEAD',
                 cache: 'no-cache',
                 mode: 'no-cors'
@@ -76,7 +76,7 @@
                 // Server responded, redirect
                 document.getElementById('message').textContent = '✓ Server pronto! Reindirizzamento...';
                 setTimeout(() => {
-                    window.location.href = 'http://192.168.4.1/';
+                    window.location.href = 'http://192.168.4.1:8080/';
                 }, 500);
             }).catch(() => {
                 // Server not ready yet, retry

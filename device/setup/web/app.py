@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 TurnoTec - Flask Web Server for Device Configuration
-Serves setup form on hotspot IP (192.168.4.1)
+Serves setup form on hotspot IP (192.168.4.1:8080)
 """
 
 import os
@@ -222,5 +222,5 @@ def configure():
 
 
 if __name__ == '__main__':
-    # Run on all interfaces, port 80
-    app.run(host='0.0.0.0', port=80, debug=False)
+    # Run on all interfaces, port 8080 (port 80 is used by FullPageOS lighttpd)
+    app.run(host='0.0.0.0', port=8080, debug=False)

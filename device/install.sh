@@ -192,15 +192,8 @@ chmod 644 /opt/turnotec/web/templates/*.html
 echo "✓ Web application copied"
 echo ""
 
-# Stop and disable FullPageOS default web server (lighttpd)
-echo "[6/8] Stopping FullPageOS default web server..."
-systemctl stop lighttpd 2>/dev/null || true
-systemctl disable lighttpd 2>/dev/null || true
-echo "✓ lighttpd disabled (port 80 freed for Flask)"
-echo ""
-
 # Copy systemd services
-echo "[7/9] Installing systemd services..."
+echo "[6/8] Installing systemd services..."
 cp "$SCRIPT_DIR/setup/systemd/turnotec-"*.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable turnotec-hotspot.service
@@ -210,7 +203,7 @@ echo "✓ Systemd services installed and enabled"
 echo ""
 
 # Configure FullPageOS
-echo "[8/10] Configuring FullPageOS..."
+echo "[7/8] Configuring FullPageOS..."
 
 # Configure initial display page to show loading page with auto-redirect
 if [ -f "$BOOT_PATH/fullpageos.txt" ]; then
@@ -225,7 +218,7 @@ echo "✓ FullPageOS configured to show loading page with auto-redirect to Flask
 echo ""
 
 # Set permissions
-echo "[9/10] Setting permissions..."
+echo "[8/8] Setting permissions..."
 chown -R root:root /opt/turnotec
 chmod -R 755 /opt/turnotec/scripts
 chmod 644 /opt/turnotec/web/app.py
@@ -233,16 +226,16 @@ echo "✓ Permissions set"
 echo ""
 
 # Create initial state
-echo "[10/10] Creating initial state..."
+echo "[9/9] Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "4.5.0",
+  "version": "4.6.0",
   "configured": false,
   "boot_path": "$BOOT_PATH",
   "offline_install": $OFFLINE_MODE,
   "wifi_country": "IT",
-  "lighttpd_disabled": true
+  "flask_port": 8080
 }
 EOF
 echo "✓ State file created"
