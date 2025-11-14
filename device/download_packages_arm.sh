@@ -22,8 +22,23 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKAGES_DIR="$SCRIPT_DIR/packages"
 
-# Create packages directory
-mkdir -p "$PACKAGES_DIR"
+# Check if packages directory already exists
+if [ -d "$PACKAGES_DIR" ] && [ -n "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
+    echo "⚠ Existing packages found in $PACKAGES_DIR"
+    echo ""
+    read -p "Remove existing packages and re-download? (yes/no): " CONFIRM_CLEAN
+    if [ "$CONFIRM_CLEAN" == "yes" ]; then
+        echo "Cleaning old packages..."
+        rm -rf "$PACKAGES_DIR"
+        mkdir -p "$PACKAGES_DIR"
+        echo "✓ Cleaned"
+    else
+        echo "Keeping existing packages. Remove them manually if needed."
+        exit 0
+    fi
+else
+    mkdir -p "$PACKAGES_DIR"
+fi
 
 echo "Package download directory: $PACKAGES_DIR"
 echo ""
@@ -79,11 +94,13 @@ echo "Downloading ARM Packages with Docker"
 echo "========================================="
 echo ""
 
-# Create temporary Dockerfile
+# Create temporary Dockerfile for ARM architecture
 cat > "$PACKAGES_DIR/Dockerfile.tmp" <<'DOCKERFILE'
-FROM debian:bookworm
+FROM arm32v7/debian:bookworm
 
-RUN apt-get update && \
+# Force ARM architecture
+RUN dpkg --print-architecture && \
+    apt-get update && \
     apt-get install -y --download-only \
         hostapd \
         dnsmasq \
@@ -94,27 +111,33 @@ RUN apt-get update && \
         curl \
         net-tools && \
     mkdir -p /packages && \
-    cp /var/cache/apt/archives/*.deb /packages/
+    cp /var/cache/apt/archives/*.deb /packages/ && \
+    echo "Downloaded packages:" && ls -lh /packages/*.deb | head -5
 DOCKERFILE
 
-echo "Building Docker container with Debian Bookworm (ARM)..."
+echo "Building Docker container with ARM Debian Bookworm..."
+echo "Using official ARM base image: arm32v7/debian:bookworm"
+echo ""
+
 docker build --platform linux/arm/v7 -f "$PACKAGES_DIR/Dockerfile.tmp" -t turnotec-arm-packages "$PACKAGES_DIR" || {
     echo ""
     echo "ERROR: Docker build failed!"
     echo ""
     echo "This might be because:"
     echo "  1. Docker doesn't support ARM emulation"
-    echo "  2. You need to install qemu-user-static"
+    echo "  2. qemu-user-static is not properly configured"
     echo ""
-    echo "Install qemu with:"
-    echo "  sudo apt-get install -y qemu-user-static"
+    echo "Try these commands:"
+    echo "  sudo apt-get install -y qemu-user-static binfmt-support"
     echo "  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes"
+    echo ""
+    echo "Then try running this script again."
     echo ""
     exit 1
 }
 
 echo ""
-echo "Extracting packages from container..."
+echo "Extracting packages from ARM container..."
 
 # Create temporary container and copy packages
 CONTAINER_ID=$(docker create --platform linux/arm/v7 turnotec-arm-packages)
@@ -123,7 +146,7 @@ docker rm "$CONTAINER_ID" > /dev/null
 
 # Cleanup
 rm "$PACKAGES_DIR/Dockerfile.tmp"
-docker rmi turnotec-arm-packages > /dev/null
+docker rmi turnotec-arm-packages > /dev/null 2>&1
 
 echo ""
 echo "========================================="
