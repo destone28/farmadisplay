@@ -205,16 +205,16 @@ echo ""
 # Configure FullPageOS
 echo "[7/9] Configuring FullPageOS..."
 
-# Configure initial display page to show waiting page with auto-refresh
+# Configure initial display page to point to Flask web server
 if [ -f "$BOOT_PATH/fullpageos.txt" ]; then
     echo "Updating fullpageos.txt..."
-    echo "file:///opt/turnotec/web/templates/waiting.html" > "$BOOT_PATH/fullpageos.txt"
+    echo "http://192.168.4.1" > "$BOOT_PATH/fullpageos.txt"
 else
     echo "Creating fullpageos.txt..."
-    echo "file:///opt/turnotec/web/templates/waiting.html" > "$BOOT_PATH/fullpageos.txt"
+    echo "http://192.168.4.1" > "$BOOT_PATH/fullpageos.txt"
 fi
 
-echo "✓ FullPageOS configured to show waiting page with auto-redirect"
+echo "✓ FullPageOS configured to open setup page at http://192.168.4.1"
 echo ""
 
 # Set permissions
@@ -230,7 +230,7 @@ echo "[9/9] Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "4.3.0",
+  "version": "4.2.0",
   "configured": false,
   "boot_path": "$BOOT_PATH",
   "offline_install": $OFFLINE_MODE,
