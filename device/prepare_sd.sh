@@ -27,8 +27,32 @@ fi
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGES_DIR="$SCRIPT_DIR/packages"
 
 echo -e "${GREEN}Script directory: $SCRIPT_DIR${NC}"
+echo ""
+
+# Check for ARM packages
+if [ -d "$PACKAGES_DIR" ] && [ -n "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
+    PKG_COUNT=$(ls -1 "$PACKAGES_DIR"/*.deb 2>/dev/null | wc -l)
+    echo -e "${GREEN}✓ Found $PKG_COUNT ARM .deb packages${NC}"
+    echo -e "${GREEN}  Installation will be OFFLINE (no internet needed)${NC}"
+    OFFLINE_MODE=true
+else
+    echo -e "${YELLOW}⚠ No ARM packages found in packages/${NC}"
+    echo -e "${YELLOW}  Installation will require Ethernet connection${NC}"
+    echo ""
+    echo "To enable offline installation:"
+    echo "  1. Run: ./download_packages_arm.sh"
+    echo "  2. Then run this script again"
+    echo ""
+    read -p "Continue with online installation? (yes/no): " CONFIRM_ONLINE
+    if [ "$CONFIRM_ONLINE" != "yes" ]; then
+        echo "Aborted. Please download ARM packages first."
+        exit 1
+    fi
+    OFFLINE_MODE=false
+fi
 echo ""
 
 # Detect OS
@@ -177,6 +201,22 @@ cp "$SCRIPT_DIR/install.sh" "$ROOTFS_MOUNT/opt/turnotec-installer/"
 echo -e "${GREEN}✓ Files copied to /opt/turnotec-installer/${NC}"
 echo ""
 
+# Copy ARM packages if available
+if [ "$OFFLINE_MODE" = true ]; then
+    echo "Copying ARM packages..."
+    mkdir -p "$ROOTFS_MOUNT/opt/turnotec-installer/packages"
+    cp "$PACKAGES_DIR"/*.deb "$ROOTFS_MOUNT/opt/turnotec-installer/packages/"
+
+    PKG_COPIED=$(ls -1 "$ROOTFS_MOUNT/opt/turnotec-installer/packages"/*.deb 2>/dev/null | wc -l)
+    echo -e "${GREEN}✓ Copied $PKG_COPIED ARM .deb packages${NC}"
+
+    # Verify architecture
+    SAMPLE_DEB=$(ls "$ROOTFS_MOUNT/opt/turnotec-installer/packages"/*.deb | head -1)
+    ARCH=$(dpkg --info "$SAMPLE_DEB" 2>/dev/null | grep "Architecture:" | awk '{print $2}' || echo "unknown")
+    echo -e "${GREEN}✓ Package architecture: $ARCH${NC}"
+    echo ""
+fi
+
 # Configure boot partition
 echo "========================================="
 echo "Step 4: Configure Boot Partition"
@@ -202,7 +242,7 @@ echo "Step 5: Create First-Boot Installer"
 echo "========================================="
 echo ""
 
-cat > "$ROOTFS_MOUNT/opt/turnotec-installer/first_boot_install.sh" <<'FIRSTBOOT'
+cat > "$ROOTFS_MOUNT/opt/turnotec-installer/first_boot_install.sh" <<FIRSTBOOT
 #!/bin/bash
 ###############################################################################
 # TurnoTec - First Boot Installation Script
@@ -211,22 +251,26 @@ cat > "$ROOTFS_MOUNT/opt/turnotec-installer/first_boot_install.sh" <<'FIRSTBOOT'
 LOGFILE="/var/log/turnotec-first-boot.log"
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOGFILE"
+    echo "[\$(date '+%Y-%m-%d %H:%M:%S')] \$1" | tee -a "\$LOGFILE"
 }
 
 log "========================================="
 log "TurnoTec First Boot Installation Started"
 log "========================================="
 
-# Wait for network
-log "Waiting for network (30 seconds)..."
-sleep 30
+# Check if offline packages available
+if [ -d "/opt/turnotec-installer/packages" ] && [ -n "\$(ls -A /opt/turnotec-installer/packages/*.deb 2>/dev/null)" ]; then
+    log "✓ Offline packages detected - no network wait needed"
+else
+    log "⚠ No offline packages - waiting for network..."
+    sleep 30
+fi
 
 # Run the main installation script
 cd /opt/turnotec-installer
 
 log "Running installation script..."
-if bash ./install.sh --auto-confirm 2>&1 | tee -a "$LOGFILE"; then
+if bash ./install.sh --auto-confirm 2>&1 | tee -a "\$LOGFILE"; then
     log "✓ Installation completed successfully"
 
     # Remove installer files
@@ -283,22 +327,22 @@ TurnoTec SD Card Preparation
 
 Prepared on: $(date)
 Prepared by: $(whoami)@$(hostname)
-Script version: 3.0.0
+Script version: 4.0.0
 FullPageOS boot path: $FULLPAGEOS_BOOT_PATH
+Installation mode: $([ "$OFFLINE_MODE" = true ] && echo "OFFLINE" || echo "ONLINE")
 
 This SD card has been prepared with TurnoTec system.
 
 On first boot, the Raspberry Pi will:
-1. Wait 30 seconds for network
-2. Run the TurnoTec installation script automatically
-3. Install all required packages via apt-get (REQUIRES ETHERNET!)
-4. Configure systemd services
-5. Activate the hotspot "TurnoTec"
-6. Show configuration instructions on the display
+1. Run the TurnoTec installation script automatically
+2. Install all required packages $([ "$OFFLINE_MODE" = true ] && echo "from offline .deb files" || echo "via apt-get (REQUIRES ETHERNET!)")
+3. Configure systemd services
+4. Activate the hotspot "TurnoTec"
+5. Show configuration instructions on the display
 
-IMPORTANT: CONNECT ETHERNET CABLE BEFORE FIRST BOOT!
+$([ "$OFFLINE_MODE" = true ] && echo "✓ NO ETHERNET NEEDED - Installation is fully offline!" || echo "⚠ IMPORTANT: CONNECT ETHERNET CABLE BEFORE FIRST BOOT!")
 
-Expected first boot time: 8-12 minutes
+Expected first boot time: $([ "$OFFLINE_MODE" = true ] && echo "3-5 minutes" || echo "8-12 minutes")
 After first boot, the display will show instructions for configuration.
 
 Installation log: /var/log/turnotec-first-boot.log
@@ -342,20 +386,43 @@ echo ""
 echo "Summary:"
 echo "--------"
 echo "  Boot path detected: $FULLPAGEOS_BOOT_PATH"
-echo "  Installation method: Online (apt-get)"
+if [ "$OFFLINE_MODE" = true ]; then
+    echo "  Installation method: Offline (ARM .deb packages)"
+    echo "  Packages copied: $PKG_COPIED .deb files"
+    echo "  Internet required: NO ✓"
+else
+    echo "  Installation method: Online (apt-get)"
+    echo "  Internet required: YES (Ethernet needed)"
+fi
 echo "  First-boot service: Enabled"
 echo ""
-echo -e "${RED}⚠️  IMPORTANT: CONNECT ETHERNET CABLE BEFORE FIRST BOOT!${NC}"
-echo ""
-echo "Next steps:"
-echo "1. Remove the SD card from your PC"
-echo "2. Insert it into the Raspberry Pi Zero 2 W"
-echo "3. ${RED}CONNECT ETHERNET CABLE${NC}"
-echo "4. Connect HDMI display and power"
-echo "5. Wait 8-12 minutes for first boot installation"
-echo "6. The display will show configuration instructions"
-echo "7. Connect smartphone to hotspot 'TurnoTec' (password: Bacheca2025)"
-echo "8. Visit http://192.168.4.1 to configure"
+
+if [ "$OFFLINE_MODE" = true ]; then
+    echo -e "${GREEN}✓ OFFLINE INSTALLATION - No Ethernet needed!${NC}"
+    echo ""
+    echo "Next steps:"
+    echo "1. Remove the SD card from your PC"
+    echo "2. Insert it into the Raspberry Pi Zero 2 W"
+    echo "3. Connect HDMI display"
+    echo "4. Connect power"
+    echo "5. Wait 3-5 minutes for offline installation"
+    echo "6. The display will show configuration instructions"
+    echo "7. Connect smartphone to hotspot 'TurnoTec' (password: Bacheca2025)"
+    echo "8. Visit http://192.168.4.1 to configure"
+else
+    echo -e "${RED}⚠️  ETHERNET REQUIRED for online installation!${NC}"
+    echo ""
+    echo "Next steps:"
+    echo "1. Remove the SD card from your PC"
+    echo "2. Insert it into the Raspberry Pi Zero 2 W"
+    echo "3. ${RED}CONNECT ETHERNET CABLE${NC}"
+    echo "4. Connect HDMI display and power"
+    echo "5. Wait 8-12 minutes for online installation"
+    echo "6. The display will show configuration instructions"
+    echo "7. Connect smartphone to hotspot 'TurnoTec' (password: Bacheca2025)"
+    echo "8. Visit http://192.168.4.1 to configure"
+fi
+
 echo ""
 echo -e "${GREEN}The SD card is ready to use!${NC}"
 echo ""

@@ -44,6 +44,8 @@ fi
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGES_DIR="$SCRIPT_DIR/packages"
+
 echo "Installation directory: $SCRIPT_DIR"
 echo ""
 
@@ -60,44 +62,78 @@ else
 fi
 echo ""
 
-# Check internet connectivity
-echo "Checking internet connectivity..."
-if ! ping -c 1 -W 5 8.8.8.8 &> /dev/null; then
-    echo "ERROR: No internet connection!"
-    echo ""
-    echo "Please ensure:"
-    echo "  1. Ethernet cable is connected"
-    echo "  2. Network has internet access"
-    echo ""
-    echo "Aborting installation."
-    exit 1
+# Check for offline packages
+OFFLINE_MODE=false
+if [ -d "$PACKAGES_DIR" ] && [ -n "$(ls -A $PACKAGES_DIR/*.deb 2>/dev/null)" ]; then
+    PKG_COUNT=$(ls -1 "$PACKAGES_DIR"/*.deb 2>/dev/null | wc -l)
+    echo "✓ Found $PKG_COUNT offline ARM packages"
+    OFFLINE_MODE=true
+    echo "Installation mode: OFFLINE (no internet needed)"
+else
+    echo "⚠ No offline packages found"
+    echo "Installation mode: ONLINE (requires internet)"
+
+    # Check internet connectivity
+    echo "Checking internet connectivity..."
+    if ! ping -c 1 -W 5 8.8.8.8 &> /dev/null; then
+        echo "ERROR: No internet connection!"
+        echo ""
+        echo "Please ensure:"
+        echo "  1. Ethernet cable is connected"
+        echo "  2. Network has internet access"
+        echo ""
+        echo "Aborting installation."
+        exit 1
+    fi
+    echo "✓ Internet connection OK"
 fi
-echo "✓ Internet connection OK"
 echo ""
 
 # Install required packages
 echo "[1/8] Installing required packages..."
-echo "This may take 5-10 minutes depending on network speed..."
 
-# Update package lists
-apt-get update -qq
+if [ "$OFFLINE_MODE" = true ]; then
+    echo "Installing from offline ARM packages..."
 
-# Install packages
-apt-get install -y --no-install-recommends \
-    hostapd \
-    dnsmasq \
-    python3-flask \
-    jq \
-    wireless-tools \
-    iw \
-    curl \
-    net-tools
+    # Install packages with dpkg
+    cd "$PACKAGES_DIR"
+
+    # First pass: try to install all packages
+    echo "Installing .deb packages..."
+    dpkg -i *.deb 2>/dev/null || true
+
+    # Fix dependencies (offline mode - will use only what's available)
+    echo "Fixing dependencies..."
+    apt-get install -f -y --no-install-recommends 2>/dev/null || true
+
+    # Second pass: install any remaining packages
+    dpkg -i *.deb 2>/dev/null || true
+
+    echo "✓ Offline packages installed"
+else
+    echo "Downloading and installing packages (this may take 5-10 minutes)..."
+
+    # Update package lists
+    apt-get update -qq
+
+    # Install packages
+    apt-get install -y --no-install-recommends \
+        hostapd \
+        dnsmasq \
+        python3-flask \
+        jq \
+        wireless-tools \
+        iw \
+        curl \
+        net-tools
+
+    echo "✓ Online packages installed"
+fi
 
 # Ensure dnsmasq and hostapd are stopped and disabled by default
 systemctl stop dnsmasq hostapd 2>/dev/null || true
 systemctl disable dnsmasq hostapd 2>/dev/null || true
 
-echo "✓ Packages installed"
 echo ""
 
 # Create directory structure
@@ -160,9 +196,10 @@ echo "[8/8] Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "configured": false,
-  "boot_path": "$BOOT_PATH"
+  "boot_path": "$BOOT_PATH",
+  "offline_install": $OFFLINE_MODE
 }
 EOF
 echo "✓ State file created"
@@ -174,6 +211,11 @@ echo "========================================="
 echo ""
 echo "Installation Summary:"
 echo "---------------------"
+if [ "$OFFLINE_MODE" = true ]; then
+    echo "  Installation method: Offline (ARM packages)"
+else
+    echo "  Installation method: Online (apt-get)"
+fi
 echo "  FullPageOS boot path: $BOOT_PATH"
 echo "  Systemd services: turnotec-hotspot, turnotec-monitor"
 echo "  Configuration file: $BOOT_PATH/fullpageos.txt"
