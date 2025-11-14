@@ -136,8 +136,41 @@ systemctl disable dnsmasq hostapd 2>/dev/null || true
 
 echo ""
 
+# Configure WiFi and unblock rfkill
+echo "[2/8] Configuring WiFi..."
+
+# Unblock WiFi (rfkill)
+echo "Unblocking WiFi with rfkill..."
+if command -v rfkill &> /dev/null; then
+    rfkill unblock wifi 2>/dev/null || rfkill unblock wlan 2>/dev/null || true
+    echo "✓ WiFi unblocked"
+else
+    echo "⚠ rfkill not found (will be handled by hotspot manager)"
+fi
+
+# Set WiFi regulatory domain for Italy
+echo "Setting WiFi regulatory domain..."
+if command -v iw &> /dev/null; then
+    iw reg set IT 2>/dev/null || true
+    echo "✓ Regulatory domain set to IT"
+fi
+
+# Configure wpa_supplicant country
+if [ ! -f /etc/wpa_supplicant/wpa_supplicant.conf ]; then
+    echo "Creating wpa_supplicant config..."
+    mkdir -p /etc/wpa_supplicant
+    cat > /etc/wpa_supplicant/wpa_supplicant.conf <<'WPACFG'
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=IT
+WPACFG
+    echo "✓ wpa_supplicant configured"
+fi
+
+echo ""
+
 # Create directory structure
-echo "[2/8] Creating directory structure..."
+echo "[3/8] Creating directory structure..."
 mkdir -p /opt/turnotec/{scripts,web/templates,web/static}
 mkdir -p /var/log/turnotec
 chmod 755 /opt/turnotec
@@ -145,14 +178,14 @@ echo "✓ Directories created"
 echo ""
 
 # Copy scripts
-echo "[3/8] Copying scripts..."
+echo "[4/8] Copying scripts..."
 cp "$SCRIPT_DIR/setup/scripts/"*.sh /opt/turnotec/scripts/
 chmod +x /opt/turnotec/scripts/*.sh
 echo "✓ Scripts copied"
 echo ""
 
 # Copy web application
-echo "[4/8] Copying web application..."
+echo "[5/8] Copying web application..."
 cp "$SCRIPT_DIR/setup/web/app.py" /opt/turnotec/web/
 cp "$SCRIPT_DIR/setup/web/templates/"*.html /opt/turnotec/web/templates/
 chmod 644 /opt/turnotec/web/templates/*.html
@@ -160,7 +193,7 @@ echo "✓ Web application copied"
 echo ""
 
 # Copy systemd services
-echo "[5/8] Installing systemd services..."
+echo "[6/8] Installing systemd services..."
 cp "$SCRIPT_DIR/setup/systemd/turnotec-"*.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable turnotec-hotspot.service
@@ -169,7 +202,7 @@ echo "✓ Systemd services installed"
 echo ""
 
 # Configure FullPageOS
-echo "[6/8] Configuring FullPageOS..."
+echo "[7/9] Configuring FullPageOS..."
 
 # Configure initial display page in fullpageos.txt
 if [ -f "$BOOT_PATH/fullpageos.txt" ]; then
@@ -184,7 +217,7 @@ echo "✓ FullPageOS configured (boot path: $BOOT_PATH)"
 echo ""
 
 # Set permissions
-echo "[7/8] Setting permissions..."
+echo "[8/9] Setting permissions..."
 chown -R root:root /opt/turnotec
 chmod -R 755 /opt/turnotec/scripts
 chmod 644 /opt/turnotec/web/app.py
@@ -192,14 +225,15 @@ echo "✓ Permissions set"
 echo ""
 
 # Create initial state
-echo "[8/8] Creating initial state..."
+echo "[9/9] Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "configured": false,
   "boot_path": "$BOOT_PATH",
-  "offline_install": $OFFLINE_MODE
+  "offline_install": $OFFLINE_MODE,
+  "wifi_country": "IT"
 }
 EOF
 echo "✓ State file created"

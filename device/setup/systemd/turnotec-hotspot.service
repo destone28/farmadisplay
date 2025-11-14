@@ -1,7 +1,8 @@
 [Unit]
 Description=TurnoTec Hotspot Manager
-After=network.target
+After=network.target systemd-rfkill.service
 Wants=network.target
+Before=turnotec-monitor.service
 
 [Service]
 Type=oneshot
@@ -11,7 +12,9 @@ ExecStop=/opt/turnotec/scripts/hotspot_manager.sh stop
 StandardOutput=journal
 StandardError=journal
 Restart=on-failure
-RestartSec=10
+RestartSec=30
+StartLimitBurst=3
+StartLimitIntervalSec=300
 
 [Install]
 WantedBy=multi-user.target

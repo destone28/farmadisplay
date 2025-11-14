@@ -234,6 +234,16 @@ echo "Enabling SSH..."
 touch "$BOOT_MOUNT/ssh"
 echo -e "${GREEN}✓ SSH enabled${NC}"
 
+# Configure WiFi country (required to unblock rfkill)
+echo "Configuring WiFi country (Italy)..."
+cat >> "$BOOT_MOUNT/config.txt" <<'EOF'
+
+# WiFi Country Configuration (required for WiFi/hotspot)
+dtparam=country=IT
+EOF
+
+echo -e "${GREEN}✓ WiFi country set to IT${NC}"
+
 echo ""
 
 # Create first-boot installation script
@@ -365,18 +375,26 @@ echo "Step 8: Finalize and Unmount"
 echo "========================================="
 echo ""
 
-echo "Syncing filesystems..."
+echo "Syncing filesystems (this may take a minute)..."
 sync
-sleep 2
+sync
+sync
+sleep 3
+echo -e "${GREEN}✓ Filesystems synced${NC}"
 
 echo "Unmounting partitions..."
 if [ "$OS_TYPE" = "Darwin" ]; then
     diskutil unmountDisk "$SD_DEVICE"
 else
-    umount "$BOOT_MOUNT"
-    umount "$ROOTFS_MOUNT"
+    # Unmount with sync to ensure all data is written
+    umount -f "$BOOT_MOUNT" 2>/dev/null || umount "$BOOT_MOUNT"
+    umount -f "$ROOTFS_MOUNT" 2>/dev/null || umount "$ROOTFS_MOUNT"
+    sync
+    sleep 2
     rmdir "$BOOT_MOUNT" "$ROOTFS_MOUNT" 2>/dev/null || true
 fi
+
+echo -e "${GREEN}✓ Partitions unmounted safely${NC}"
 
 echo ""
 echo "========================================="

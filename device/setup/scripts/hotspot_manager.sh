@@ -44,6 +44,41 @@ is_hotspot_active() {
 start_hotspot() {
     log "Starting hotspot..."
 
+    # Check and unblock WiFi with rfkill
+    log "Checking WiFi availability..."
+    if command -v rfkill &> /dev/null; then
+        # Unblock WiFi
+        rfkill unblock wifi 2>/dev/null || rfkill unblock wlan 2>/dev/null || true
+        log "✓ WiFi unblocked with rfkill"
+    else
+        log "⚠ rfkill command not available"
+    fi
+
+    # Set WiFi regulatory domain
+    if command -v iw &> /dev/null; then
+        iw reg set IT 2>/dev/null || true
+        log "✓ Regulatory domain set to IT"
+    fi
+
+    # Wait for wlan0 to be available
+    WLAN_WAIT=0
+    while [ ! -e "/sys/class/net/$HOTSPOT_INTERFACE" ] && [ $WLAN_WAIT -lt 10 ]; do
+        log "Waiting for $HOTSPOT_INTERFACE... ($WLAN_WAIT/10)"
+        sleep 1
+        WLAN_WAIT=$((WLAN_WAIT + 1))
+    done
+
+    if [ ! -e "/sys/class/net/$HOTSPOT_INTERFACE" ]; then
+        log "ERROR: $HOTSPOT_INTERFACE not found after 10 seconds!"
+        log "This might be because:"
+        log "  1. WiFi country is not configured (check /boot/firmware/config.txt)"
+        log "  2. WiFi is still blocked by rfkill"
+        log "  3. WiFi driver not loaded"
+        return 1
+    fi
+
+    log "✓ $HOTSPOT_INTERFACE is available"
+
     # Stop any existing network manager interference
     if systemctl is-active --quiet NetworkManager; then
         log "Stopping NetworkManager temporarily..."
@@ -70,6 +105,9 @@ wpa_passphrase=${HOTSPOT_PASSWORD}
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
+country_code=IT
+ieee80211d=1
+ieee80211h=0
 EOF
 
     # Set hostapd config location

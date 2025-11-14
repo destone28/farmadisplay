@@ -1,6 +1,6 @@
 [Unit]
 Description=TurnoTec Connectivity Monitor
-After=network-online.target
+After=network-online.target turnotec-hotspot.service
 Wants=network-online.target
 
 [Service]
@@ -9,8 +9,10 @@ User=root
 ExecStart=/opt/turnotec/scripts/connectivity_monitor.sh
 StandardOutput=journal
 StandardError=journal
-Restart=always
-RestartSec=10
+Restart=on-failure
+RestartSec=30
+StartLimitBurst=5
+StartLimitIntervalSec=600
 
 [Install]
 WantedBy=multi-user.target
