@@ -10,6 +10,9 @@ User=root
 WorkingDirectory=/opt/turnotec/web
 Environment="FLASK_APP=app.py"
 Environment="PYTHONUNBUFFERED=1"
+# Stop lighttpd (FullPageOS default web server) to free port 80
+ExecStartPre=-/bin/systemctl stop lighttpd
+ExecStartPre=-/bin/systemctl disable lighttpd
 # Wait 10 seconds after hotspot is ready before starting Flask
 ExecStartPre=/bin/sleep 10
 ExecStart=/usr/bin/python3 /opt/turnotec/web/app.py
