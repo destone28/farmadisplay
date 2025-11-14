@@ -180,7 +180,9 @@ echo ""
 # Copy scripts
 echo "[4/8] Copying scripts..."
 cp "$SCRIPT_DIR/setup/scripts/"*.sh /opt/turnotec/scripts/
+cp "$SCRIPT_DIR/setup/scripts/"*.py /opt/turnotec/scripts/ 2>/dev/null || true
 chmod +x /opt/turnotec/scripts/*.sh
+chmod +x /opt/turnotec/scripts/*.py 2>/dev/null || true
 echo "✓ Scripts copied"
 echo ""
 

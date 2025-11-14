@@ -62,7 +62,27 @@ if [ -n "$WIFI_SSID" ] && [ "$WIFI_SSID" != "null" ] && [ -n "$WIFI_PASSWORD" ] 
         cp "$WPA_SUPPLICANT" "${WPA_SUPPLICANT}.backup.$(date +%s)"
     fi
 
-    # Create new wpa_supplicant.conf
+    # Generate PSK hash using Python PBKDF2 to handle special characters correctly
+    # This prevents issues with passwords containing #, !, $, ", ', etc.
+    log "Generating secure PSK hash for WiFi password..."
+
+    # Use Python script to generate WPA2-PSK hash using PBKDF2-HMAC-SHA1
+    # This is the same algorithm used by wpa_passphrase
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PSK_HASH=$("$SCRIPT_DIR/generate_psk.py" "$WIFI_SSID" "$WIFI_PASSWORD" 2>&1)
+
+    if [ $? -ne 0 ] || [ -z "$PSK_HASH" ]; then
+        error "Failed to generate PSK hash: $PSK_HASH"
+    fi
+
+    # Validate PSK hash format (must be 64 hex characters)
+    if ! echo "$PSK_HASH" | grep -qE '^[0-9a-f]{64}$'; then
+        error "Invalid PSK hash format: $PSK_HASH"
+    fi
+
+    log "PSK hash generated successfully"
+
+    # Create new wpa_supplicant.conf with hashed PSK
     cat > "$WPA_SUPPLICANT" <<EOF
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -70,14 +90,14 @@ country=IT
 
 network={
     ssid="${WIFI_SSID}"
-    psk="${WIFI_PASSWORD}"
+    psk=${PSK_HASH}
     key_mgmt=WPA-PSK
     priority=10
 }
 EOF
 
     chmod 600 "$WPA_SUPPLICANT"
-    log "WiFi configuration saved"
+    log "WiFi configuration saved with secure PSK hash"
 
     # Reconfigure wpa_supplicant
     wpa_cli -i wlan0 reconfigure 2>/dev/null || true
