@@ -1,7 +1,7 @@
 [Unit]
 Description=TurnoTec Flask Web Server
-After=network.target turnotec-hotspot.service
-Wants=network.target
+After=turnotec-hotspot.service
+Requires=turnotec-hotspot.service
 PartOf=turnotec-hotspot.service
 
 [Service]
@@ -10,11 +10,16 @@ User=root
 WorkingDirectory=/opt/turnotec/web
 Environment="FLASK_APP=app.py"
 Environment="PYTHONUNBUFFERED=1"
+# Wait 10 seconds after hotspot is ready before starting Flask
+ExecStartPre=/bin/sleep 10
 ExecStart=/usr/bin/python3 /opt/turnotec/web/app.py
-StandardOutput=journal
-StandardError=journal
+StandardOutput=append:/var/log/turnotec-web.log
+StandardError=append:/var/log/turnotec-web.log
 Restart=on-failure
-RestartSec=10
+RestartSec=15
+StartLimitBurst=5
+StartLimitIntervalSec=300
+TimeoutStartSec=90
 
 [Install]
 WantedBy=multi-user.target
