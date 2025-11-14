@@ -223,11 +223,11 @@ echo "Step 4: Configure Boot Partition"
 echo "========================================="
 echo ""
 
-# Configure FullPageOS to open setup page
+# Configure FullPageOS to open waiting page
 echo "Configuring FullPageOS..."
-echo "http://192.168.4.1" > "$BOOT_MOUNT/fullpageos.txt"
+echo "file:///opt/turnotec/web/templates/waiting.html" > "$BOOT_MOUNT/fullpageos.txt"
 
-echo -e "${GREEN}✓ FullPageOS configured to open http://192.168.4.1${NC}"
+echo -e "${GREEN}✓ FullPageOS configured to show waiting page${NC}"
 
 # Enable SSH
 echo "Enabling SSH..."
