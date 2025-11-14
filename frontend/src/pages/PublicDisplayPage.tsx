@@ -78,8 +78,9 @@ export const PublicDisplayPage: React.FC = () => {
 
     fetchPharmacies();
 
-    // Refresh pharmacies every 30 seconds
-    const refreshInterval = setInterval(fetchPharmacies, 30000);
+    // Refresh pharmacies every 15 minutes (900000ms)
+    // This reduces server load by 96.7% while maintaining acceptable data freshness
+    const refreshInterval = setInterval(fetchPharmacies, 900000);
 
     return () => clearInterval(refreshInterval);
   }, [config]);

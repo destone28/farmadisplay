@@ -220,7 +220,7 @@ export const BachecaPage: React.FC = () => {
                 📍 Questa modalità mostra automaticamente le farmacie di turno o aperte nella tua zona.
               </p>
               <p className="text-[9px] sm:text-[10px] text-blue-600">
-                I dati vengono aggiornati automaticamente da farmaciediturno.org ogni 30 secondi.
+                I dati vengono aggiornati automaticamente da farmaciediturno.org ogni 15 minuti.
               </p>
             </div>
           )}
