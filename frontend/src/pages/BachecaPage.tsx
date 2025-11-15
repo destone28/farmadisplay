@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { ConfigurationForm } from '../components/display/ConfigurationForm';
 import { DisplayPreview } from '../components/display/DisplayPreview';
+import { DeviceControl } from '../components/devices/DeviceControl';
 import { displayConfigService } from '../services/displayConfigService';
 import { DisplayConfig, DisplayConfigUpdate, PharmacyHours } from '../types/display';
 import { Pharmacy } from '../types';
@@ -193,20 +194,30 @@ export const BachecaPage: React.FC = () => {
       {/* Main Content - Responsive Layout */}
       <div className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-4 p-3 sm:p-4 overflow-hidden">
         {/* Configuration Form - Full width on mobile, 3/4 on desktop */}
-        <div className={`${showPreview ? 'hidden' : 'flex'} lg:flex lg:w-3/4 flex-col overflow-auto`}>
-          <ConfigurationForm
-            pharmacyId={selectedPharmacyId}
-            pharmacy={selectedPharmacy}
-            config={config}
-            onUpdate={loadConfig}
-            liveFormData={liveFormData}
-            onLiveFormDataChange={setLiveFormData}
-            liveHours={liveHours}
-            onLiveHoursChange={setLiveHours}
-            liveFooterBgColor={liveFooterBgColor}
-            onLiveFooterBgColorChange={setLiveFooterBgColor}
-            onLiveImagePreview={setLiveImagePreview}
-          />
+        <div className={`${showPreview ? 'hidden' : 'flex'} lg:flex lg:w-3/4 flex-col gap-4 overflow-auto`}>
+          {/* Device Control Panel */}
+          {selectedPharmacyId && (
+            <div className="flex-shrink-0">
+              <DeviceControl pharmacyId={selectedPharmacyId} />
+            </div>
+          )}
+
+          {/* Configuration Form */}
+          <div className="flex-1 min-h-0 overflow-auto">
+            <ConfigurationForm
+              pharmacyId={selectedPharmacyId}
+              pharmacy={selectedPharmacy}
+              config={config}
+              onUpdate={loadConfig}
+              liveFormData={liveFormData}
+              onLiveFormDataChange={setLiveFormData}
+              liveHours={liveHours}
+              onLiveHoursChange={setLiveHours}
+              liveFooterBgColor={liveFooterBgColor}
+              onLiveFooterBgColorChange={setLiveFooterBgColor}
+              onLiveImagePreview={setLiveImagePreview}
+            />
+          </div>
         </div>
 
         {/* Preview - Full width on mobile when shown, 1/4 on desktop always shown */}

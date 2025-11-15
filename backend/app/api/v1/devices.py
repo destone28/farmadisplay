@@ -10,14 +10,18 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.models.device import Device, DeviceStatus
+from app.models.device import Device, DeviceStatus, DeviceCommand, CommandStatus
 from app.models.pharmacy import Pharmacy
 from app.schemas.device import (
     DeviceCreate,
     DeviceActivate,
     DeviceStatusUpdate,
     DeviceResponse,
-    DeviceHeartbeat
+    DeviceHeartbeat,
+    DeviceCommandCreate,
+    DeviceCommandResponse,
+    DeviceCommandPoll,
+    DeviceCommandUpdate
 )
 from app.dependencies import AdminUser, CurrentUser, get_current_user, require_admin
 from app.api.v1.pharmacies import require_pharmacy_access
@@ -227,8 +231,10 @@ async def device_heartbeat(
 
     Updates:
     - last_seen timestamp
+    - last_heartbeat timestamp
     - status based on network connection
     - firmware_version if provided
+    - monitoring data (IP, CPU, memory, disk, temperature, uptime)
     """
     device = db.query(Device).filter(Device.id == device_id).first()
 
@@ -245,8 +251,10 @@ async def device_heartbeat(
             detail="Serial number mismatch"
         )
 
-    # Update last seen
-    device.last_seen = datetime.utcnow()
+    # Update timestamps
+    now = datetime.utcnow()
+    device.last_seen = now
+    device.last_heartbeat = now
 
     # Update status
     device.status = heartbeat.status
@@ -254,6 +262,20 @@ async def device_heartbeat(
     # Update firmware version if provided
     if heartbeat.firmware_version:
         device.firmware_version = heartbeat.firmware_version
+
+    # Update monitoring data
+    if heartbeat.ip_address:
+        device.ip_address = heartbeat.ip_address
+    if heartbeat.uptime_seconds is not None:
+        device.uptime_seconds = heartbeat.uptime_seconds
+    if heartbeat.cpu_usage is not None:
+        device.cpu_usage = heartbeat.cpu_usage
+    if heartbeat.memory_usage is not None:
+        device.memory_usage = heartbeat.memory_usage
+    if heartbeat.disk_usage is not None:
+        device.disk_usage = heartbeat.disk_usage
+    if heartbeat.temperature is not None:
+        device.temperature = heartbeat.temperature
 
     db.commit()
     db.refresh(device)
@@ -314,3 +336,206 @@ async def delete_device(
     db.commit()
 
     return None
+
+
+# =============================================================================
+# DEVICE REMOTE CONTROL ENDPOINTS
+# =============================================================================
+
+@router.post("/{device_id}/commands", response_model=DeviceCommandResponse, status_code=status.HTTP_201_CREATED)
+async def create_device_command(
+    device_id: UUID,
+    command: DeviceCommandCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Create a command for a device.
+
+    Supported command types:
+    - reboot: Reboot the device
+    - update: Update device software
+    - execute: Execute a custom shell command (admin only)
+    - ssh_tunnel: Establish SSH tunnel (admin only)
+
+    RBAC:
+    - Users can send reboot/update to devices for their own pharmacies
+    - Admins can send any command to any device
+    """
+    device = db.query(Device).filter(Device.id == device_id).first()
+
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found"
+        )
+
+    # Verify access to device's pharmacy
+    if device.pharmacy_id:
+        await require_pharmacy_access(device.pharmacy_id, current_user, db)
+
+    # Restrict dangerous commands to admin only
+    dangerous_commands = ["execute", "ssh_tunnel"]
+    if command.command_type in dangerous_commands and current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Command type '{command.command_type}' requires admin privileges"
+        )
+
+    # Create command
+    device_command = DeviceCommand(
+        device_id=device_id,
+        command_type=command.command_type,
+        command_data=command.command_data,
+        status=CommandStatus.PENDING,
+        created_by=current_user.id
+    )
+
+    db.add(device_command)
+    db.commit()
+    db.refresh(device_command)
+
+    return device_command
+
+
+@router.get("/{device_id}/commands", response_model=List[DeviceCommandResponse])
+async def list_device_commands(
+    device_id: UUID,
+    status_filter: CommandStatus | None = Query(None, description="Filter by status"),
+    limit: int = Query(50, ge=1, le=100, description="Max results"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    List commands for a device.
+
+    RBAC:
+    - Users see commands for devices of their own pharmacies
+    - Admins see all commands
+    """
+    device = db.query(Device).filter(Device.id == device_id).first()
+
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found"
+        )
+
+    # Verify access to device's pharmacy
+    if device.pharmacy_id:
+        await require_pharmacy_access(device.pharmacy_id, current_user, db)
+
+    query = db.query(DeviceCommand).filter(DeviceCommand.device_id == device_id)
+
+    if status_filter:
+        query = query.filter(DeviceCommand.status == status_filter)
+
+    commands = query.order_by(DeviceCommand.created_at.desc()).limit(limit).all()
+
+    return commands
+
+
+@router.post("/{device_id}/commands/poll", response_model=List[DeviceCommandResponse])
+async def poll_device_commands(
+    device_id: UUID,
+    poll_data: DeviceCommandPoll,
+    db: Session = Depends(get_db)
+):
+    """
+    Poll pending commands for a device (NO AUTH).
+
+    Called by devices to retrieve commands to execute.
+    Returns pending commands and marks them as SENT.
+    """
+    device = db.query(Device).filter(Device.id == device_id).first()
+
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found"
+        )
+
+    # Verify serial number matches
+    if device.serial_number != poll_data.serial_number:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Serial number mismatch"
+        )
+
+    # Get pending commands
+    pending_commands = db.query(DeviceCommand).filter(
+        DeviceCommand.device_id == device_id,
+        DeviceCommand.status == CommandStatus.PENDING
+    ).order_by(DeviceCommand.created_at.asc()).all()
+
+    # Mark as sent
+    now = datetime.utcnow()
+    for cmd in pending_commands:
+        cmd.status = CommandStatus.SENT
+        cmd.sent_at = now
+
+    db.commit()
+
+    # Refresh to get updated data
+    for cmd in pending_commands:
+        db.refresh(cmd)
+
+    return pending_commands
+
+
+@router.put("/commands/{command_id}", response_model=DeviceCommandResponse)
+async def update_command_status(
+    command_id: UUID,
+    update: DeviceCommandUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    Update command execution status (NO AUTH - called by device).
+
+    Allows devices to report command execution progress and results.
+    """
+    command = db.query(DeviceCommand).filter(DeviceCommand.id == command_id).first()
+
+    if not command:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Command not found"
+        )
+
+    # Update status
+    command.status = update.status
+
+    # Update timestamps based on status
+    now = datetime.utcnow()
+    if update.status == CommandStatus.EXECUTING and not command.executed_at:
+        command.executed_at = now
+    elif update.status in [CommandStatus.COMPLETED, CommandStatus.FAILED, CommandStatus.CANCELLED]:
+        if not command.executed_at:
+            command.executed_at = now
+        command.completed_at = now
+
+    # Update result/error
+    if update.result:
+        command.result = update.result
+    if update.error:
+        command.error = update.error
+
+    db.commit()
+    db.refresh(command)
+
+    return command
+
+
+@router.post("/{device_id}/reboot", response_model=DeviceCommandResponse, status_code=status.HTTP_201_CREATED)
+async def reboot_device(
+    device_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Reboot a device (shortcut endpoint).
+
+    Creates a reboot command for the device.
+    """
+    command = DeviceCommandCreate(command_type="reboot")
+    return await create_device_command(device_id, command, db, current_user)

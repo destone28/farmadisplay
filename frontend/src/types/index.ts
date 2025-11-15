@@ -139,7 +139,9 @@ export interface ShiftCreate {
 
 export interface ShiftUpdate extends Partial<Omit<ShiftCreate, 'pharmacy_id'>> {}
 
-export type DeviceStatus = 'pending' | 'active' | 'inactive' | 'maintenance'
+export type DeviceStatus = 'pending' | 'active' | 'inactive' | 'maintenance' | 'offline'
+
+export type CommandStatus = 'pending' | 'sent' | 'executing' | 'completed' | 'failed' | 'cancelled'
 
 export interface Device {
   id: string
@@ -152,6 +154,16 @@ export interface Device {
   firmware_version?: string
   created_at: string
   activated_at?: string
+
+  // Remote monitoring fields
+  ip_address?: string
+  uptime_seconds?: number
+  cpu_usage?: number
+  memory_usage?: number
+  disk_usage?: number
+  temperature?: number
+  last_heartbeat?: string
+  is_online?: boolean
 }
 
 export interface DeviceCreate {
@@ -169,4 +181,30 @@ export interface DeviceHeartbeat {
   serial_number: string
   status: DeviceStatus
   firmware_version?: string
+  ip_address?: string
+  uptime_seconds?: number
+  cpu_usage?: number
+  memory_usage?: number
+  disk_usage?: number
+  temperature?: number
+}
+
+export interface DeviceCommand {
+  id: string
+  device_id: string
+  command_type: string
+  command_data?: string
+  status: CommandStatus
+  created_by?: string
+  created_at: string
+  sent_at?: string
+  executed_at?: string
+  completed_at?: string
+  result?: string
+  error?: string
+}
+
+export interface DeviceCommandCreate {
+  command_type: string
+  command_data?: string
 }

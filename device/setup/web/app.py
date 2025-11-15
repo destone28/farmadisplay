@@ -7,6 +7,8 @@ Serves setup form on hotspot IP (192.168.4.1:8080)
 import os
 import subprocess
 import json
+import hashlib
+import uuid
 from flask import Flask, render_template, request, jsonify
 import logging
 
@@ -17,6 +19,53 @@ logger = logging.getLogger(__name__)
 # Configuration
 CONFIG_FILE = "/opt/turnotec/config.json"
 STATE_FILE = "/opt/turnotec/state.json"
+
+
+def get_cpu_serial():
+    """Get Raspberry Pi CPU serial number"""
+    try:
+        with open('/proc/cpuinfo', 'r') as f:
+            for line in f:
+                if line.startswith('Serial'):
+                    return line.split(':')[1].strip()
+        return None
+    except Exception as e:
+        logger.error(f"Error getting CPU serial: {e}")
+        return None
+
+
+def get_mac_address():
+    """Get MAC address of eth0 or wlan0"""
+    try:
+        for interface in ['eth0', 'wlan0']:
+            result = subprocess.run(
+                ["cat", f"/sys/class/net/{interface}/address"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        return None
+    except Exception as e:
+        logger.error(f"Error getting MAC address: {e}")
+        return None
+
+
+def generate_serial_number():
+    """Generate unique serial number for device"""
+    # Try CPU serial first (most reliable on Raspberry Pi)
+    cpu_serial = get_cpu_serial()
+    if cpu_serial:
+        return f"RPI-{cpu_serial}"
+
+    # Fallback to MAC address
+    mac_address = get_mac_address()
+    if mac_address:
+        return f"MAC-{mac_address.replace(':', '').upper()}"
+
+    # Last resort: generate UUID
+    return f"UUID-{str(uuid.uuid4())}"
 
 
 def check_ethernet_connected():
@@ -184,21 +233,44 @@ def configure():
             # For now, we'll save and let connectivity monitor handle it
             wifi_configured = True
 
+        # Generate or load existing serial number
+        serial_number = None
+        mac_address = get_mac_address()
+
+        # Check if config already exists and has serial number
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, 'r') as f:
+                    existing_config = json.load(f)
+                    serial_number = existing_config.get('serial_number')
+                    if not mac_address:
+                        mac_address = existing_config.get('mac_address')
+            except:
+                pass
+
+        # Generate serial number if not exists
+        if not serial_number:
+            serial_number = generate_serial_number()
+            logger.info(f"Generated serial number: {serial_number}")
+
         # Save configuration
         config = {
             'display_id': display_id,
+            'serial_number': serial_number,
+            'mac_address': mac_address,
             'domain': domain,
             'wifi_ssid': wifi_ssid if wifi_configured else None,
             'wifi_password': wifi_password if wifi_configured else None,
             'ethernet_fallback': ethernet_connected,
-            'configured': True
+            'configured': True,
+            'firmware_version': '5.0.0'
         }
 
         os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
         with open(CONFIG_FILE, 'w') as f:
             json.dump(config, f, indent=2)
 
-        logger.info("Configuration saved successfully")
+        logger.info(f"Configuration saved successfully (Serial: {serial_number})")
 
         # Trigger configuration script
         subprocess.run(

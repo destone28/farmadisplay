@@ -170,40 +170,61 @@ fi
 echo ""
 
 # Create directory structure
-echo "[3/8] Creating directory structure..."
-mkdir -p /opt/turnotec/{scripts,web/templates,web/static}
+echo "[3/9] Creating directory structure..."
+mkdir -p /opt/turnotec/{scripts,web/templates,web/static,agent}
 mkdir -p /var/log/turnotec
 chmod 755 /opt/turnotec
 echo "✓ Directories created"
 echo ""
 
 # Copy scripts
-echo "[4/8] Copying scripts..."
+echo "[4/9] Copying scripts..."
 cp "$SCRIPT_DIR/setup/scripts/"*.sh /opt/turnotec/scripts/
 chmod +x /opt/turnotec/scripts/*.sh
 echo "✓ Scripts copied"
 echo ""
 
 # Copy web application
-echo "[5/8] Copying web application..."
+echo "[5/9] Copying web application..."
 cp "$SCRIPT_DIR/setup/web/app.py" /opt/turnotec/web/
 cp "$SCRIPT_DIR/setup/web/templates/"*.html /opt/turnotec/web/templates/
 chmod 644 /opt/turnotec/web/templates/*.html
 echo "✓ Web application copied"
 echo ""
 
+# Install TurnoTec Agent
+echo "[6/9] Installing TurnoTec Agent..."
+cp "$SCRIPT_DIR/agent/turnotec_agent.py" /opt/turnotec/agent/
+cp "$SCRIPT_DIR/agent/requirements.txt" /opt/turnotec/agent/
+cp "$SCRIPT_DIR/agent/update_agent.sh" /opt/turnotec/scripts/
+chmod +x /opt/turnotec/agent/turnotec_agent.py
+chmod +x /opt/turnotec/scripts/update_agent.sh
+
+# Install Python dependencies for agent
+echo "Installing Python dependencies for agent..."
+if [ "$OFFLINE_MODE" = true ]; then
+    echo "⚠ Offline mode: Python dependencies must be pre-installed"
+else
+    pip3 install --upgrade pip
+    pip3 install -r /opt/turnotec/agent/requirements.txt
+fi
+echo "✓ TurnoTec Agent installed"
+echo ""
+
 # Copy systemd services
-echo "[6/8] Installing systemd services..."
+echo "[7/9] Installing systemd services..."
 cp "$SCRIPT_DIR/setup/systemd/turnotec-"*.service /etc/systemd/system/
+cp "$SCRIPT_DIR/agent/turnotec-agent.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable turnotec-hotspot.service
 systemctl enable turnotec-monitor.service
 systemctl enable turnotec-web.service
+systemctl enable turnotec-agent.service
 echo "✓ Systemd services installed and enabled"
 echo ""
 
 # Configure FullPageOS
-echo "[7/8] Configuring FullPageOS..."
+echo "[8/9] Configuring FullPageOS..."
 
 # Configure initial display page to show loading page with auto-redirect
 if [ -f "$BOOT_PATH/fullpageos.txt" ]; then
@@ -218,24 +239,26 @@ echo "✓ FullPageOS configured to show loading page with auto-redirect to Flask
 echo ""
 
 # Set permissions
-echo "[8/8] Setting permissions..."
+echo "[9/9] Setting permissions..."
 chown -R root:root /opt/turnotec
 chmod -R 755 /opt/turnotec/scripts
+chmod -R 755 /opt/turnotec/agent
 chmod 644 /opt/turnotec/web/app.py
 echo "✓ Permissions set"
 echo ""
 
 # Create initial state
-echo "[9/9] Creating initial state..."
+echo "Creating initial state..."
 cat > /opt/turnotec/state.json <<EOF
 {
   "installed_at": "$(date -Iseconds)",
-  "version": "4.6.0",
+  "version": "5.0.0",
   "configured": false,
   "boot_path": "$BOOT_PATH",
   "offline_install": $OFFLINE_MODE,
   "wifi_country": "IT",
-  "flask_port": 8080
+  "flask_port": 8080,
+  "agent_enabled": true
 }
 EOF
 echo "✓ State file created"

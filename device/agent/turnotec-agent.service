@@ -1,0 +1,26 @@
+[Unit]
+Description=TurnoTec Device Agent
+Documentation=https://turnotec.com/docs/device-agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/turnotec/agent
+ExecStart=/usr/bin/python3 /opt/turnotec/agent/turnotec_agent.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=false
+PrivateTmp=true
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
