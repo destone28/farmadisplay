@@ -188,17 +188,21 @@ echo ""
 
 # Create directories on SD card
 echo "Creating directories..."
-mkdir -p "$ROOTFS_MOUNT/opt/turnotec/"{scripts,web/templates,web/static}
+mkdir -p "$ROOTFS_MOUNT/opt/turnotec/"{scripts,web/templates,web/static,agent}
 mkdir -p "$ROOTFS_MOUNT/opt/turnotec-installer"
 mkdir -p "$ROOTFS_MOUNT/var/log/turnotec"
 
 # Copy all device files to installer directory
 echo "Copying installation files..."
 cp -r "$SCRIPT_DIR/setup" "$ROOTFS_MOUNT/opt/turnotec-installer/"
+cp -r "$SCRIPT_DIR/agent" "$ROOTFS_MOUNT/opt/turnotec-installer/"
 cp -r "$SCRIPT_DIR/config" "$ROOTFS_MOUNT/opt/turnotec-installer/"
 cp "$SCRIPT_DIR/install.sh" "$ROOTFS_MOUNT/opt/turnotec-installer/"
 
 echo -e "${GREEN}✓ Files copied to /opt/turnotec-installer/${NC}"
+echo -e "${GREEN}  - Setup scripts and systemd services${NC}"
+echo -e "${GREEN}  - Device Agent (remote control)${NC}"
+echo -e "${GREEN}  - Flask web configuration interface${NC}"
 echo ""
 
 # Copy ARM packages if available
@@ -337,18 +341,27 @@ TurnoTec SD Card Preparation
 
 Prepared on: $(date)
 Prepared by: $(whoami)@$(hostname)
-Script version: 4.0.0
+Script version: 5.0.0
 FullPageOS boot path: $FULLPAGEOS_BOOT_PATH
 Installation mode: $([ "$OFFLINE_MODE" = true ] && echo "OFFLINE" || echo "ONLINE")
 
 This SD card has been prepared with TurnoTec system.
 
+Features included:
+- WiFi Hotspot for device configuration
+- Flask web configuration interface
+- Remote monitoring and control system (NEW v5.0)
+- Automatic device agent with heartbeat
+- Real-time system metrics (CPU, RAM, Disk, Temperature)
+- Remote reboot capability
+
 On first boot, the Raspberry Pi will:
 1. Run the TurnoTec installation script automatically
 2. Install all required packages $([ "$OFFLINE_MODE" = true ] && echo "from offline .deb files" || echo "via apt-get (REQUIRES ETHERNET!)")
-3. Configure systemd services
+3. Configure systemd services (hotspot, web, monitor, agent)
 4. Activate the hotspot "TurnoTec"
-5. Show configuration instructions on the display
+5. Start remote control agent
+6. Show configuration instructions on the display
 
 $([ "$OFFLINE_MODE" = true ] && echo "✓ NO ETHERNET NEEDED - Installation is fully offline!" || echo "⚠ IMPORTANT: CONNECT ETHERNET CABLE BEFORE FIRST BOOT!")
 
@@ -361,6 +374,12 @@ FullPageOS Configuration:
 - Boot path: $FULLPAGEOS_BOOT_PATH
 - Config file: $FULLPAGEOS_BOOT_PATH/fullpageos.txt
 - URL script: /opt/custompios/scripts/get_url
+
+Systemd Services:
+- turnotec-hotspot.service: WiFi hotspot manager
+- turnotec-web.service: Flask configuration interface
+- turnotec-monitor.service: Connectivity monitor
+- turnotec-agent.service: Remote monitoring & control agent (NEW v5.0)
 INSTALLINFO
 
 # Store boot path for install script
